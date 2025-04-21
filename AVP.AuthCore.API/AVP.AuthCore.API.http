@@ -1,0 +1,6 @@
+@AVP.AuthCore.API_HostAddress = http://localhost:5020
+
+GET {{AVP.AuthCore.API_HostAddress}}/api/Auth/register
+Accept: application/json
+
+###
