@@ -1,12 +1,13 @@
-﻿using AVP.AuthCore.Application.DTOs;
+﻿using AVP.AuthCore.Application.Common.Results;
+using AVP.AuthCore.Application.DTOs;
 
 namespace AVP.AuthCore.Application.Interfaces
 {
     public interface IAuthService
     {
-        Task<AuthResponse> RegisterAsync(RegisterRequest request);
-        Task<AuthResponse> LoginAsync(LoginRequest request);
-        Task<AuthResponse> RefreshTokenAsync(RefreshRequest request);
-        Task RevokeRefreshTokenAsync(string refreshToken);
+        Task<OperationResult<AuthResponse>> RegisterAsync(RegisterRequest request);
+        Task<OperationResult<AuthResponse>> LoginAsync(LoginRequest request);
+        Task<OperationResult<AuthResponse>> RefreshTokenAsync(RefreshRequest request);
+        Task<OperationResult> RevokeRefreshTokenAsync(string refreshToken);
     }
 }

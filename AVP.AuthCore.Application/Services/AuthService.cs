@@ -5,6 +5,7 @@ using AVP.AuthCore.Application.Interfaces;
 using AVP.AuthCore.Application.DTOs;
 using AVP.AuthCore.Persistence;
 using AVP.AuthCore.Persistence.Entities;
+using AVP.AuthCore.Application.Common.Results;
 
 namespace AVP.AuthCore.Application.Services
 {
@@ -14,19 +15,16 @@ namespace AVP.AuthCore.Application.Services
         ITokenService tokenService,
         AuthDbContext context) : IAuthService
     {
-        public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
+        public async Task<OperationResult<AuthResponse>> RegisterAsync(RegisterRequest request)
         {
             var user = new ApplicationUser { UserName = request.Email, Email = request.Email };
             var result = await userManager.CreateAsync(user, request.Password);
 
             if (!result.Succeeded)
-            {
-                throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
-            }
+                return OperationResult<AuthResponse>.Fail(result.Errors.Select(e => e.Description).ToArray());
 
             var accessToken = await tokenService.GenerateAccessTokenAsync(user);
             var refreshToken = await tokenService.GenerateRefreshTokenAsync();
-
             var expires = DateTime.UtcNow.AddDays(7);
 
             context.RefreshTokens.Add(new RefreshToken
@@ -38,22 +36,21 @@ namespace AVP.AuthCore.Application.Services
 
             await context.SaveChangesAsync();
 
-            return new AuthResponse(true, accessToken, refreshToken, expires, []);
+            return OperationResult<AuthResponse>.Ok(new AuthResponse(accessToken, refreshToken, expires));
         }
 
-        public async Task<AuthResponse> LoginAsync(LoginRequest request)
+        public async Task<OperationResult<AuthResponse>> LoginAsync(LoginRequest request)
         {
             var user = await userManager.FindByEmailAsync(request.Email);
             if (user == null)
-                throw new Exception("Invalid credentials");
+                return OperationResult<AuthResponse>.Fail("Invalid credentials");
 
             var result = await signInManager.CheckPasswordSignInAsync(user, request.Password, false);
             if (!result.Succeeded)
-                throw new Exception("Invalid credentials");
+                return OperationResult<AuthResponse>.Fail("Invalid credentials");
 
             var accessToken = await tokenService.GenerateAccessTokenAsync(user);
             var refreshToken = await tokenService.GenerateRefreshTokenAsync();
-
             var expires = DateTime.UtcNow.AddDays(7);
 
             context.RefreshTokens.Add(new RefreshToken
@@ -65,27 +62,26 @@ namespace AVP.AuthCore.Application.Services
 
             await context.SaveChangesAsync();
 
-            return new AuthResponse(true, accessToken, refreshToken, expires, []);
+            return OperationResult<AuthResponse>.Ok(new AuthResponse(accessToken, refreshToken, expires));
         }
 
-        public async Task<AuthResponse> RefreshTokenAsync(RefreshRequest request)
+        public async Task<OperationResult<AuthResponse>> RefreshTokenAsync(RefreshRequest request)
         {
             var principal = tokenService.GetPrincipalFromExpiredToken(request.AccessToken);
             var userId = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (userId is null)
-                throw new Exception("Invalid access token");
+                return OperationResult<AuthResponse>.Fail("Invalid access token");
 
             var user = await userManager.FindByIdAsync(userId);
             if (user == null)
-                throw new Exception("User not found");
+                return OperationResult<AuthResponse>.Fail("User not found");
 
             var storedToken = await context.RefreshTokens
-                .Where(x => x.Token == request.RefreshToken && x.UserId == user.Id && !x.Revoked)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.Token == request.RefreshToken && x.UserId == user.Id && !x.Revoked);
 
             if (storedToken == null || storedToken.Expires < DateTime.UtcNow)
-                throw new Exception("Invalid or expired refresh token");
+                return OperationResult<AuthResponse>.Fail("Invalid or expired refresh token");
 
             // отзыв старого токена
             storedToken.Revoked = true;
@@ -105,19 +101,24 @@ namespace AVP.AuthCore.Application.Services
 
             var newAccessToken = await tokenService.GenerateAccessTokenAsync(user);
 
-            return new AuthResponse(true, newAccessToken, newRefreshToken, expires, []);
+            return OperationResult<AuthResponse>.Ok(new AuthResponse(newAccessToken, newRefreshToken, expires));
         }
 
-        public async Task RevokeRefreshTokenAsync(string refreshToken)
+        public async Task<OperationResult> RevokeRefreshTokenAsync(string refreshToken)
         {
             var token = await context.RefreshTokens
                 .FirstOrDefaultAsync(x => x.Token == refreshToken);
 
-            if (token != null)
-            {
-                token.Revoked = true;
-                await context.SaveChangesAsync();
-            }
+            if (token == null)
+                return OperationResult.Fail("Refresh token not found");
+
+            if (token.Revoked)
+                return OperationResult.Fail("Refresh token already revoked");
+
+            token.Revoked = true;
+            await context.SaveChangesAsync();
+
+            return OperationResult.Ok();
         }
     }
 }
