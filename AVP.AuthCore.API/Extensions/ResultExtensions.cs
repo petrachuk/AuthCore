@@ -5,13 +5,17 @@ namespace AVP.AuthCore.API.Extensions
 {
     public static class ResultExtensions
     {
-        public static IActionResult ToActionResult(this OperationResult result)
+        public static IActionResult ToActionResult(this OperationResult result, ILogger logger)
         {
             if (result.IsSuccess)
+            {
+                logger.LogInformation("Request succeeded.");
                 return new NoContentResult();
+            }
 
             var errorMessage = result.Errors.FirstOrDefault() ?? "An error occurred";
 
+            logger.LogWarning("Request failed with errors: {Errors}", string.Join(" ", result.Errors));
             return errorMessage switch
             {
                 "Invalid access token" => new UnauthorizedObjectResult(new ProblemDetails
@@ -35,13 +39,17 @@ namespace AVP.AuthCore.API.Extensions
             };
         }
 
-        public static IActionResult ToActionResult<T>(this OperationResult<T> result)
+        public static IActionResult ToActionResult<T>(this OperationResult<T> result, ILogger logger)
         {
             if (result.IsSuccess)
+            {
+                logger.LogInformation("Request succeeded with data: {Data}", result.Data);
                 return new OkObjectResult(result.Data);
+            }
 
             var errorMessage = result.Errors.FirstOrDefault() ?? "An error occurred";
 
+            logger.LogWarning("Request failed with errors: {Errors}", string.Join(" ", result.Errors));
             return errorMessage switch
             {
                 "Invalid access token" => new UnauthorizedObjectResult(new ProblemDetails

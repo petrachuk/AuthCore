@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AVP.AuthCore.Application\AVP.AuthCore.Application.csproj" />
+    <ProjectReference Include="..\AVP.AuthCore.Infrastructure\AVP.AuthCore.Infrastructure.csproj" />
     <ProjectReference Include="..\AVP.AuthCore.Persistence\AVP.AuthCore.Persistence.csproj" />
   </ItemGroup>
 

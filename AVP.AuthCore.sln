@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AVP.AuthCore.Persistence", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AVP.AuthCore.Tests.Unit", "AVP.AuthCore.Tests.Unit\AVP.AuthCore.Tests.Unit.csproj", "{2D129230-2F2C-4560-BA11-FA5720B9C604}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AVP.AuthCore.Infrastructure", "AVP.AuthCore.Infrastructure\AVP.AuthCore.Infrastructure.csproj", "{BCEBC530-F62C-4BF6-8A18-30FBF19CD6F6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{2D129230-2F2C-4560-BA11-FA5720B9C604}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2D129230-2F2C-4560-BA11-FA5720B9C604}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2D129230-2F2C-4560-BA11-FA5720B9C604}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BCEBC530-F62C-4BF6-8A18-30FBF19CD6F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BCEBC530-F62C-4BF6-8A18-30FBF19CD6F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BCEBC530-F62C-4BF6-8A18-30FBF19CD6F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BCEBC530-F62C-4BF6-8A18-30FBF19CD6F6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -8,8 +8,9 @@ namespace AVP.AuthCore.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuthController(IAuthService authService) : ControllerBase
+    public class AuthController(IAuthService authService, ILogger<AuthController> logger) : ControllerBase
     {
+        [AllowAnonymous]
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
@@ -17,9 +18,10 @@ namespace AVP.AuthCore.API.Controllers
                 return BadRequest(ModelState);
 
             var result = await authService.RegisterAsync(request);
-            return result.ToActionResult();
+            return result.ToActionResult(logger);
         }
 
+        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
@@ -27,9 +29,10 @@ namespace AVP.AuthCore.API.Controllers
                 return BadRequest(ModelState);
 
             var result = await authService.LoginAsync(request);
-            return result.ToActionResult();
+            return result.ToActionResult(logger);
         }
 
+        [AllowAnonymous]
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh([FromBody] RefreshRequest request)
         {
@@ -37,7 +40,7 @@ namespace AVP.AuthCore.API.Controllers
                 return BadRequest(ModelState);
 
             var result = await authService.RefreshTokenAsync(request);
-            return result.ToActionResult();
+            return result.ToActionResult(logger);
         }
 
         [Authorize]
@@ -48,7 +51,7 @@ namespace AVP.AuthCore.API.Controllers
                 return BadRequest(ModelState);
 
             var result = await authService.RevokeRefreshTokenAsync(request.RefreshToken);
-            return result.ToActionResult();
+            return result.ToActionResult(logger);
         }
     }
 }
