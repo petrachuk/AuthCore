@@ -1,0 +1,304 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="error.registration_failed" xml:space="preserve">
+    <value>Ошибка регистрации пользователя</value>
+    <comment>При сбое процесса регистрации пользователя</comment>
+  </data>
+  <data name="error.invalid_access_token" xml:space="preserve">
+    <value>Недействительный или просроченный токен доступа</value>
+    <comment>Когда не удается проверить JWT токен</comment>
+  </data>
+  <data name="error.invalid_credentials" xml:space="preserve">
+    <value>Неверное имя пользователя или пароль</value>
+    <comment>При неудачной попытке входа</comment>
+  </data>
+  <data name="error.refresh_token_expired" xml:space="preserve">
+    <value>Срок действия токена обновления истек</value>
+    <comment>Когда истек срок действия refresh token</comment>
+  </data>
+  <data name="error.refresh_token_not_found" xml:space="preserve">
+    <value>Токен обновления не найден</value>
+    <comment>Когда refresh token отсутствует в базе данных</comment>
+  </data>
+  <data name="error.refresh_token_already_revoked" xml:space="preserve">
+    <value>Токен обновления уже отозван</value>
+    <comment>При попытке использовать отозванный refresh token</comment>
+  </data>
+  <data name="error.refresh_token_invalid" xml:space="preserve">
+    <value>Недействительный токен обновления</value>
+    <comment>Когда refresh token имеет неверный формат или недействителен</comment>
+  </data>
+  <data name="error.session_expired" xml:space="preserve">
+    <value>Сессия пользователя истекла</value>
+    <comment>Когда сессия пользователя больше не действительна</comment>
+  </data>
+  <data name="error.concurrent_login" xml:space="preserve">
+    <value>Обнаружен одновременный вход</value>
+    <comment>При обнаружении множественных попыток входа</comment>
+  </data>
+  <data name="error.user_not_found" xml:space="preserve">
+    <value>Пользователь не найден</value>
+    <comment>Когда пользователь не существует в базе данных</comment>
+  </data>
+  <data name="error.user_already_exists" xml:space="preserve">
+    <value>Пользователь уже существует</value>
+    <comment>При попытке создать дубликат пользователя</comment>
+  </data>
+  <data name="error.user_locked" xml:space="preserve">
+    <value>Учетная запись заблокирована</value>
+    <comment>Когда аккаунт временно заблокирован из-за неудачных попыток</comment>
+  </data>
+  <data name="error.user_disabled" xml:space="preserve">
+    <value>Учетная запись отключена</value>
+    <comment>Когда аккаунт был отключен администратором</comment>
+  </data>
+  <data name="error.email_not_confirmed" xml:space="preserve">
+    <value>Email адрес не подтвержден</value>
+    <comment>Когда требуется подтверждение email</comment>
+  </data>
+  <data name="error.email_already_confirmed" xml:space="preserve">
+    <value>Email адрес уже подтвержден</value>
+    <comment>При попытке подтвердить уже верифицированный email</comment>
+  </data>
+  <data name="error.invalid_email_confirmation_token" xml:space="preserve">
+    <value>Недействительный или просроченный токен подтверждения email</value>
+    <comment>Когда токен подтверждения email недействителен</comment>
+  </data>
+  <data name="error.invalid_password_reset_token" xml:space="preserve">
+    <value>Недействительный или просроченный токен сброса пароля</value>
+    <comment>Когда токен сброса пароля недействителен</comment>
+  </data>
+  <data name="error.invalid_email" xml:space="preserve">
+    <value>Неверный формат email</value>
+    <comment>Когда формат email неправильный</comment>
+  </data>
+  <data name="error.invalid_username" xml:space="preserve">
+    <value>Неверный формат имени пользователя</value>
+    <comment>Когда имя пользователя не соответствует требованиям</comment>
+  </data>
+  <data name="error.password_requires_digit" xml:space="preserve">
+    <value>Пароль должен содержать хотя бы одну цифру</value>
+    <comment>Когда в пароле отсутствуют цифры</comment>
+  </data>
+  <data name="error.password_requires_non_alphanumeric" xml:space="preserve">
+    <value>Пароль должен содержать хотя бы один специальный символ</value>
+    <comment>Когда в пароле отсутствуют специальные символы</comment>
+  </data>
+  <data name="error.password_requires_upper" xml:space="preserve">
+    <value>Пароль должен содержать хотя бы одну заглавную букву</value>
+    <comment>Когда в пароле отсутствуют заглавные буквы</comment>
+  </data>
+  <data name="error.password_requires_lower" xml:space="preserve">
+    <value>Пароль должен содержать хотя бы одну строчную букву</value>
+    <comment>Когда в пароле отсутствуют строчные буквы</comment>
+  </data>
+  <data name="error.password_too_short" xml:space="preserve">
+    <value>Пароль должен быть не менее {0} символов</value>
+    <comment>Когда пароль слишком короткий</comment>
+  </data>
+  <data name="error.password_requires_unique_chars" xml:space="preserve">
+    <value>Пароль должен содержать не менее {0} уникальных символов</value>
+    <comment>Когда в пароле недостаточно разнообразных символов</comment>
+  </data>
+  <data name="error.password_contains_personal_data" xml:space="preserve">
+    <value>Пароль не может содержать персональные данные</value>
+    <comment>Когда пароль содержит имя пользователя или email</comment>
+  </data>
+  <data name="error.role_not_found" xml:space="preserve">
+    <value>Роль не найдена</value>
+    <comment>Когда роль не существует</comment>
+  </data>
+  <data name="error.user_already_in_role" xml:space="preserve">
+    <value>Пользователь уже имеет данную роль</value>
+    <comment>При попытке добавить дублирующую роль пользователю</comment>
+  </data>
+  <data name="error.user_not_in_role" xml:space="preserve">
+    <value>Пользователь не имеет данной роли</value>
+    <comment>При попытке удалить несуществующую роль у пользователя</comment>
+  </data>
+  <data name="error.default_role_not_found" xml:space="preserve">
+    <value>Роль по умолчанию не найдена</value>
+    <comment>Когда отсутствует роль по умолчанию</comment>
+  </data>
+  <data name="error.external_authentication_error" xml:space="preserve">
+    <value>Ошибка внешней аутентификации</value>
+    <comment>При сбое провайдера внешней аутентификации</comment>
+  </data>
+  <data name="error.external_provider_not_found" xml:space="preserve">
+    <value>Провайдер внешней аутентификации не найден</value>
+    <comment>Когда провайдер внешней аутентификации не настроен</comment>
+  </data>
+  <data name="error.external_user_already_associated" xml:space="preserve">
+    <value>Внешний пользователь уже связан с учетной записью</value>
+    <comment>При попытке связать дублирующие внешние аккаунты</comment>
+  </data>
+  <data name="error.validation_failed" xml:space="preserve">
+    <value>Ошибка валидации</value>
+    <comment>Для общих ошибок валидации</comment>
+  </data>
+  <data name="error.invalid_request" xml:space="preserve">
+    <value>Неверный запрос</value>
+    <comment>Для некорректно сформированных запросов</comment>
+  </data>
+  <data name="error.invalid_operation" xml:space="preserve">
+    <value>Недопустимая операция</value>
+    <comment>Для операций, которые не могут быть выполнены</comment>
+  </data>
+  <data name="error.database_error" xml:space="preserve">
+    <value>Ошибка работы с базой данных</value>
+    <comment>Для ошибок, связанных с базой данных</comment>
+  </data>
+  <data name="error.communication_error" xml:space="preserve">
+    <value>Ошибка связи</value>
+    <comment>Для сбоев сети/коммуникации</comment>
+  </data>
+  <data name="error.configuration_error" xml:space="preserve">
+    <value>Ошибка конфигурации</value>
+    <comment>Для проблем с системной конфигурацией</comment>
+  </data>
+  <data name="error.too_many_requests" xml:space="preserve">
+    <value>Слишком много запросов</value>
+    <comment>При превышении лимита запросов</comment>
+  </data>
+  <data name="error.too_many_failed_attempts" xml:space="preserve">
+    <value>Слишком много неудачных попыток</value>
+    <comment>При превышении максимального количества попыток</comment>
+  </data>
+  <data name="error.two_factor_required" xml:space="preserve">
+    <value>Требуется двухфакторная аутентификация</value>
+    <comment>Когда 2FA обязательна</comment>
+  </data>
+  <data name="error.invalid_two_factor_code" xml:space="preserve">
+    <value>Неверный код двухфакторной аутентификации</value>
+    <comment>Когда код 2FA неверен</comment>
+  </data>
+  <data name="error.two_factor_already_enabled" xml:space="preserve">
+    <value>Двухфакторная аутентификация уже включена</value>
+    <comment>При попытке включить уже активированную 2FA</comment>
+  </data>
+  <data name="error.two_factor_not_enabled" xml:space="preserve">
+    <value>Двухфакторная аутентификация не включена</value>
+    <comment>Когда 2FA требуется, но не настроена</comment>
+  </data>
+  <data name="error.invalid_recovery_code" xml:space="preserve">
+    <value>Неверный код восстановления</value>
+    <comment>Когда код восстановления 2FA недействителен</comment>
+  </data>
+</root>

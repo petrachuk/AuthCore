@@ -17,4 +17,14 @@
     <ProjectReference Include="..\AVP.AuthCore.Persistence\AVP.AuthCore.Persistence.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\ErrorMessages.resx">
+      <Generator></Generator>
+      <CustomToolNamespace>AVP.AuthCore.Application.Resources</CustomToolNamespace>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\ErrorMessages.ru.resx">
+      <CustomToolNamespace>AVP.AuthCore.Application.Resources</CustomToolNamespace>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

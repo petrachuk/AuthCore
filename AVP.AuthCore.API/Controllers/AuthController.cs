@@ -1,14 +1,16 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Localization;
 using AVP.AuthCore.API.Extensions;
 using AVP.AuthCore.Application.Interfaces;
 using AVP.AuthCore.Application.DTOs;
+using AVP.AuthCore.Application.Resources;
 
 namespace AVP.AuthCore.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuthController(IAuthService authService, ILogger<AuthController> logger) : ControllerBase
+    public class AuthController(IAuthService authService, ILogger<AuthController> logger, IStringLocalizer<ErrorMessages> localizer) : ControllerBase
     {
         [AllowAnonymous]
         [HttpPost("register")]
@@ -18,7 +20,7 @@ namespace AVP.AuthCore.API.Controllers
                 return BadRequest(ModelState);
 
             var result = await authService.RegisterAsync(request);
-            return result.ToActionResult(logger);
+            return result.ToActionResult(logger, localizer);
         }
 
         [AllowAnonymous]
@@ -29,7 +31,7 @@ namespace AVP.AuthCore.API.Controllers
                 return BadRequest(ModelState);
 
             var result = await authService.LoginAsync(request);
-            return result.ToActionResult(logger);
+            return result.ToActionResult(logger, localizer);
         }
 
         [AllowAnonymous]
@@ -40,7 +42,7 @@ namespace AVP.AuthCore.API.Controllers
                 return BadRequest(ModelState);
 
             var result = await authService.RefreshTokenAsync(request);
-            return result.ToActionResult(logger);
+            return result.ToActionResult(logger, localizer);
         }
 
         [Authorize]
@@ -51,7 +53,7 @@ namespace AVP.AuthCore.API.Controllers
                 return BadRequest(ModelState);
 
             var result = await authService.RevokeRefreshTokenAsync(request.RefreshToken);
-            return result.ToActionResult(logger);
+            return result.ToActionResult(logger, localizer);
         }
     }
 }

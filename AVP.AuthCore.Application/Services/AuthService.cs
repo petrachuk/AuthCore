@@ -1,12 +1,14 @@
 ﻿using System.Security.Claims;
+using AVP.AuthCore.Application.Common.Errors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using AVP.AuthCore.Application.Interfaces;
 using AVP.AuthCore.Application.DTOs;
 using AVP.AuthCore.Persistence;
 using AVP.AuthCore.Persistence.Entities;
 using AVP.AuthCore.Application.Common.Results;
-using Microsoft.Extensions.Logging;
+using AVP.AuthCore.Application.Resources;
 
 namespace AVP.AuthCore.Application.Services
 {
@@ -15,7 +17,7 @@ namespace AVP.AuthCore.Application.Services
         SignInManager<ApplicationUser> signInManager,
         ITokenService tokenService,
         AuthDbContext context,
-        ILogger<AuthService> logger) : IAuthService
+        ILogger<ErrorMessages> logger) : IAuthService
     {
         public async Task<OperationResult<AuthResponse>> RegisterAsync(RegisterRequest request)
         {
@@ -26,8 +28,12 @@ namespace AVP.AuthCore.Application.Services
 
             if (!result.Succeeded)
             {
-                logger.LogWarning("Registration failed for {Email} with errors: {Errors}", request.Email, string.Join(", ", result.Errors.Select(e => e.Description)));
-                return OperationResult<AuthResponse>.Fail(result.Errors.Select(e => e.Description).ToArray());
+                logger.LogWarning("Registration failed for {Email} with errors: {Errors}", request.Email, result.Errors.Select(e => e.Description));
+
+                var details = result.Errors
+                    .Select(e => Enum.Parse<ErrorCode>(e.Code));
+
+                return OperationResult<AuthResponse>.Fail(ErrorCode.RegistrationFailed, details);
             }
 
             var accessToken = await tokenService.GenerateAccessTokenAsync(user);
@@ -55,14 +61,14 @@ namespace AVP.AuthCore.Application.Services
             if (user == null)
             {
                 logger.LogWarning("Login failed for {Email} with errors: Invalid credentials", request.Email);
-                return OperationResult<AuthResponse>.Fail("Invalid credentials");
+                return OperationResult<AuthResponse>.Fail(ErrorCode.InvalidCredentials);
             }
 
             var result = await signInManager.CheckPasswordSignInAsync(user, request.Password, false);
             if (!result.Succeeded)
             {
                 logger.LogWarning("Login failed for {Email} with errors: Invalid credentials", request.Email);
-                return OperationResult<AuthResponse>.Fail("Invalid credentials");
+                return OperationResult<AuthResponse>.Fail(ErrorCode.InvalidCredentials);
             }
 
             var accessToken = await tokenService.GenerateAccessTokenAsync(user);
@@ -92,29 +98,23 @@ namespace AVP.AuthCore.Application.Services
             if (userId is null)
             {
                 logger.LogWarning("Refresh failed: Invalid access token");
-                return OperationResult<AuthResponse>.Fail("Invalid access token");
+                return OperationResult<AuthResponse>.Fail(ErrorCode.InvalidAccessToken);
             }
 
             var user = await userManager.FindByIdAsync(userId);
             if (user == null)
             {
                 logger.LogWarning("Refresh failed: User with ID {UserId} not found", userId);
-                return OperationResult<AuthResponse>.Fail("User not found");
+                return OperationResult<AuthResponse>.Fail(ErrorCode.UserNotFound);
             }
 
             var storedToken = await context.RefreshTokens
                 .FirstOrDefaultAsync(x => x.Token == request.RefreshToken && x.UserId == user.Id && !x.Revoked);
 
-            if (storedToken == null)
+            if (storedToken == null || storedToken.Expires < DateTime.UtcNow)
             {
                 logger.LogWarning("Refresh failed for user {Email}: Invalid or revoked refresh token", user.Email);
-                return OperationResult<AuthResponse>.Fail("Invalid or expired refresh token");
-            }
-
-            if (storedToken.Expires < DateTime.UtcNow)
-            {
-                logger.LogWarning("Refresh failed for user {Email}: Refresh token expired", user.Email);
-                return OperationResult<AuthResponse>.Fail("Invalid or expired refresh token");
+                return OperationResult<AuthResponse>.Fail(ErrorCode.RefreshTokenExpired);
             }
 
             logger.LogInformation("Refreshing tokens for user {Email}", user.Email);
@@ -147,16 +147,16 @@ namespace AVP.AuthCore.Application.Services
             var token = await context.RefreshTokens
                 .FirstOrDefaultAsync(x => x.Token == refreshToken);
 
-            if (token == null)
+            if (token is null)
             {
                 logger.LogWarning("Revocation failed: Refresh token not found");
-                return OperationResult.Fail("Refresh token not found");
+                return OperationResult.Fail(ErrorCode.RefreshTokenNotFound);
             }
 
             if (token.Revoked)
             {
                 logger.LogWarning("Revocation failed: Refresh token already revoked");
-                return OperationResult.Fail("Refresh token already revoked");
+                return OperationResult.Fail(ErrorCode.RefreshTokenAlreadyRevoked);
             }
 
             token.Revoked = true;

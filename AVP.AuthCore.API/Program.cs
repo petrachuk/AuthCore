@@ -1,9 +1,12 @@
 using System.Text;
+using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
+using Microsoft.Extensions.Localization;
+using Microsoft.AspNetCore.Localization;
 using Serilog;
 using AVP.AuthCore.Application.Interfaces;
 using AVP.AuthCore.Application.Services;
@@ -88,6 +91,8 @@ namespace AVP.AuthCore.API
                         };
                     });
 
+                builder.Services.AddLocalization(options => options.ResourcesPath = string.Empty);
+
                 // конфигурация БД
                 builder.Services.AddDbContext<AuthDbContext>(options =>
                     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -100,7 +105,27 @@ namespace AVP.AuthCore.API
                 builder.Services.AddScoped<IAuthService, AuthService>();
                 builder.Services.AddScoped<ITokenService, TokenService>();
 
+                // Настраиваем локализацию для использования ресурсов из другого проекта
+                builder.Services.AddSingleton<IStringLocalizerFactory, ResourceManagerStringLocalizerFactory>();
+                builder.Services.AddSingleton<IStringLocalizer>(provider =>
+                {
+                    var factory = provider.GetRequiredService<IStringLocalizerFactory>();
+                    return factory.Create("ErrorMessages", "AVP.AuthCore.Application");
+                });
+
                 var app = builder.Build();
+
+                var supportedCultures = new[]
+                {
+                    new CultureInfo("en"),
+                    new CultureInfo("ru")
+                };
+                app.UseRequestLocalization(new RequestLocalizationOptions
+                {
+                    DefaultRequestCulture = new RequestCulture("en"),
+                    SupportedCultures = supportedCultures,
+                    SupportedUICultures = supportedCultures
+                });
 
                 // Configure the HTTP request pipeline.
                 if (app.Environment.IsDevelopment())
