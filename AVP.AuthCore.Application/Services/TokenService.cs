@@ -11,13 +11,16 @@ namespace AVP.AuthCore.Application.Services
 {
     public class TokenService(IConfiguration config) : ITokenService
     {
-        public Task<string> GenerateAccessTokenAsync(IdentityUser user)
+        public Task<string> GenerateAccessTokenAsync(IdentityUser user, IList<string> roles)
         {
-            var claims = new[]
+            var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim(ClaimTypes.Name, user.Email)
+                new(JwtRegisteredClaimNames.Sub, user.Id),
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
+            
+            // добавление ролей
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JwtSettings:Key"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

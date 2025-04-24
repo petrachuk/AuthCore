@@ -5,7 +5,7 @@ namespace AVP.AuthCore.Application.Interfaces
 {
     public interface ITokenService
     {
-        Task<string> GenerateAccessTokenAsync(IdentityUser user);
+        Task<string> GenerateAccessTokenAsync(IdentityUser user, IList<string> roles);
         Task<string> GenerateRefreshTokenAsync();
         ClaimsPrincipal? GetPrincipalFromExpiredToken(string token);
     }

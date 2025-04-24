@@ -9,14 +9,17 @@ using AVP.AuthCore.Persistence;
 using AVP.AuthCore.Persistence.Entities;
 using AVP.AuthCore.Application.Common.Results;
 using AVP.AuthCore.Application.Resources;
+using Microsoft.Extensions.Configuration;
 
 namespace AVP.AuthCore.Application.Services
 {
     public class AuthService(
         UserManager<ApplicationUser> userManager,
+        RoleManager<IdentityRole> roleManager,
         SignInManager<ApplicationUser> signInManager,
         ITokenService tokenService,
         AuthDbContext context,
+        IConfiguration config,
         ILogger<ErrorMessages> logger) : IAuthService
     {
         public async Task<OperationResult<AuthResponse>> RegisterAsync(RegisterRequest request)
@@ -36,7 +39,17 @@ namespace AVP.AuthCore.Application.Services
                 return OperationResult<AuthResponse>.Fail(ErrorCode.RegistrationFailed, details);
             }
 
-            var accessToken = await tokenService.GenerateAccessTokenAsync(user);
+            // Добавить роль по умолчанию
+            var defaultRole = config["Identity:DefaultUserRole"] ?? "User";
+
+            // Убедиться, что такая роль есть
+            if (!await roleManager.RoleExistsAsync(defaultRole))
+                await roleManager.CreateAsync(new IdentityRole(defaultRole));
+
+            // Назначить роль
+            await userManager.AddToRoleAsync(user, defaultRole);
+
+            var accessToken = await tokenService.GenerateAccessTokenAsync(user, [ defaultRole ]);
             var refreshToken = await tokenService.GenerateRefreshTokenAsync();
             var expires = DateTime.UtcNow.AddDays(7);
 
@@ -71,7 +84,9 @@ namespace AVP.AuthCore.Application.Services
                 return OperationResult<AuthResponse>.Fail(ErrorCode.InvalidCredentials);
             }
 
-            var accessToken = await tokenService.GenerateAccessTokenAsync(user);
+            var roles = await userManager.GetRolesAsync(user);
+
+            var accessToken = await tokenService.GenerateAccessTokenAsync(user, roles);
             var refreshToken = await tokenService.GenerateRefreshTokenAsync();
             var expires = DateTime.UtcNow.AddDays(7);
 
@@ -134,7 +149,9 @@ namespace AVP.AuthCore.Application.Services
 
             await context.SaveChangesAsync();
 
-            var newAccessToken = await tokenService.GenerateAccessTokenAsync(user);
+            var roles = await userManager.GetRolesAsync(user);
+
+            var newAccessToken = await tokenService.GenerateAccessTokenAsync(user, roles);
 
             logger.LogInformation("Token refreshed successfully for user {Email}", user.Email);
             return OperationResult<AuthResponse>.Ok(new AuthResponse(newAccessToken, newRefreshToken, expires));
