@@ -16,7 +16,7 @@ namespace AVP.AuthCore.API.Extensions
                 return new NoContentResult();
             }
 
-            logger.LogWarning("Request failed with errors: {Errors}", string.Join(" ", result.Details));
+            logger.LogWarning("Request failed with errors: {Errors}", string.Join(" ", result.Details ?? []));
             return BuildErrorResult(result.Error, result.Details, localizer);
         }
 
@@ -28,7 +28,7 @@ namespace AVP.AuthCore.API.Extensions
                 return new OkObjectResult(result.Data);
             }
 
-            logger.LogWarning("Request failed with errors: {Errors}", string.Join(" ", result.Details));
+            logger.LogWarning("Request failed with errors: {Errors}", string.Join(" ", result.Details ?? []));
             return BuildErrorResult(result.Error, result.Details, localizer);
         }
 

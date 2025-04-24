@@ -87,7 +87,7 @@ namespace AVP.AuthCore.API
                             // валидация ключа безопасности
                             ValidateIssuerSigningKey = true,
                             // установка ключа безопасности
-                            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]))
+                            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]!))
                         };
                     });
 

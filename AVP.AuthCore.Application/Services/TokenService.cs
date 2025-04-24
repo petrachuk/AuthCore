@@ -22,7 +22,7 @@ namespace AVP.AuthCore.Application.Services
             // добавление ролей
             claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JwtSettings:Key"]));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JwtSettings:Key"] ?? string.Empty));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             // создаем JWT-токен
@@ -48,7 +48,7 @@ namespace AVP.AuthCore.Application.Services
                 ValidateAudience = false,   // мы не проверяем, кому был предназначен токен
                 ValidateIssuer = false,     // и кто его выпустил
                 ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JwtSettings:Key"])),
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JwtSettings:Key"] ?? string.Empty)),
                 ValidateLifetime = false // важно! мы извлекаем даже из просроченного токена
             };
 
