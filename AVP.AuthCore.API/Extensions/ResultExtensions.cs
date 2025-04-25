@@ -8,7 +8,7 @@ namespace AVP.AuthCore.API.Extensions
 {
     public static class ResultExtensions
     {
-        public static IActionResult ToActionResult(this OperationResult result, ILogger logger, IStringLocalizer<ErrorMessages> localizer)
+        public static IActionResult ToActionResult(this OperationResult result, ILogger logger, IStringLocalizer<ErrorMessages> localizer, HttpContext httpContext)
         {
             if (result.IsSuccess)
             {
@@ -17,10 +17,10 @@ namespace AVP.AuthCore.API.Extensions
             }
 
             logger.LogWarning("Request failed with errors: {Errors}", string.Join(" ", result.Details ?? []));
-            return BuildErrorResult(result.Error, result.Details, localizer);
+            return BuildErrorResult(result.Error, result.Details, result.RawMessages, localizer, httpContext);
         }
 
-        public static IActionResult ToActionResult<T>(this OperationResult<T> result, ILogger logger, IStringLocalizer<ErrorMessages> localizer)
+        public static IActionResult ToActionResult<T>(this OperationResult<T> result, ILogger logger, IStringLocalizer<ErrorMessages> localizer, HttpContext httpContext)
         {
             if (result.IsSuccess)
             {
@@ -29,10 +29,10 @@ namespace AVP.AuthCore.API.Extensions
             }
 
             logger.LogWarning("Request failed with errors: {Errors}", string.Join(" ", result.Details ?? []));
-            return BuildErrorResult(result.Error, result.Details, localizer);
+            return BuildErrorResult(result.Error, result.Details, result.RawMessages, localizer, httpContext);
         }
 
-        private static IActionResult BuildErrorResult(ErrorCode? error, IEnumerable<ErrorCode>? details, IStringLocalizer<ErrorMessages> localizer)
+        private static IActionResult BuildErrorResult(ErrorCode? error, IEnumerable<ErrorCode>? details, IEnumerable<string>? rawMessages, IStringLocalizer<ErrorMessages> localizer, HttpContext httpContext)
         {
             // локализация главной ошибки
             var mainMessageKey = error.HasValue ? ErrorCatalog.GetMessageKey(error.Value) : "Unknown";
@@ -40,13 +40,22 @@ namespace AVP.AuthCore.API.Extensions
 
             // локализация деталей
             var localizedDetails = details?
+                .Where(code => code != ErrorCode.Unknown)
                 .Select(code => localizer[ErrorCatalog.GetMessageKey(code)].Value)
                 .ToList() ?? [];
 
+            // добавим сырые сообщения, если есть
+            if (localizedDetails.Count == 0 && rawMessages != null) localizedDetails.AddRange(rawMessages);
+
             var problemDetails = new ProblemDetails
             {
+                Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
                 Detail = localizedMainMessage,
-                Extensions = { ["errors"] = localizedDetails }
+                Instance = httpContext.Request.Path,
+                Extensions = {
+                    ["errors"] = localizedDetails,
+                    ["traceId"] = httpContext.TraceIdentifier
+                }
             };
 
             return error switch

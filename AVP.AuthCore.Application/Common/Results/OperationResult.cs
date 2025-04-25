@@ -21,12 +21,22 @@ namespace AVP.AuthCore.Application.Common.Results
             Error = errorCode,
             Details = details
         };
+
+        // Ошибка с сообщениями
+        public static OperationResult Fail(ErrorCode errorCode, IEnumerable<ErrorCode>? details, IEnumerable<string>? rawMessages) => new()
+        {
+            IsSuccess = false,
+            Error = errorCode,
+            Details = details,
+            RawMessages = rawMessages
+        };
     }
 
     public class OperationResult<T> : OperationResultBase
     {
         public T? Data { get; private set; }
 
+        // успех
         public static OperationResult<T> Ok(T data) => new()
         {
             IsSuccess = true,
@@ -39,11 +49,21 @@ namespace AVP.AuthCore.Application.Common.Results
             Error = errorCode
         };
 
+        // ошибка (только код)
         public static OperationResult<T> Fail(ErrorCode errorCode, IEnumerable<ErrorCode> details) => new()
         {
             IsSuccess = false,
             Error = errorCode,
             Details = details
+        };
+
+        // ошибка с сообщениями
+        public static OperationResult<T> Fail(ErrorCode errorCode, IEnumerable<ErrorCode> details, IEnumerable<string> rawMessages) => new()
+        {
+            IsSuccess = false,
+            Error = errorCode,
+            Details = details,
+            RawMessages = rawMessages
         };
     }
 }

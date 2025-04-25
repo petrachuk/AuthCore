@@ -34,9 +34,13 @@ namespace AVP.AuthCore.Application.Services
                 logger.LogWarning("Registration failed for {Email} with errors: {Errors}", request.Email, result.Errors.Select(e => e.Description));
 
                 var details = result.Errors
-                    .Select(e => Enum.Parse<ErrorCode>(e.Code));
+                    .Select(e => Enum.TryParse<ErrorCode>(e.Code, out var errorCode) ? errorCode : ErrorCode.Unknown);
 
-                return OperationResult<AuthResponse>.Fail(ErrorCode.RegistrationFailed, details);
+                var messages = result.Errors
+                    .Select(e => e.Description)
+                    .ToList();
+
+                return OperationResult<AuthResponse>.Fail(ErrorCode.RegistrationFailed, details, messages);
             }
 
             // Добавить роль по умолчанию

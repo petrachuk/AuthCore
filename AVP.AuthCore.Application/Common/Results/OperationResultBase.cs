@@ -5,9 +5,11 @@ namespace AVP.AuthCore.Application.Common.Results
     public abstract class OperationResultBase
     {
         public bool IsSuccess { get; protected set; }
-        // Главная ошибка (например, "Validation.Failed")
+        // основной код ошибки
         public ErrorCode? Error { get; protected set; }
-        // Подробные ошибки (например, ["Password too short", "Email already taken"])
+        // дополнительные коды ошибок
         public IEnumerable<ErrorCode>? Details { get; protected set; } = [];
+        // сырые ошибки
+        public IEnumerable<string>? RawMessages { get; init; }
     }
 }

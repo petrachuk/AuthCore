@@ -38,8 +38,6 @@
             { ErrorCode.PasswordRequiresNonAlphanumeric, $"{Prefix}.password_requires_non_alphanumeric" },
             { ErrorCode.PasswordRequiresUpper, $"{Prefix}.password_requires_upper" },
             { ErrorCode.PasswordRequiresLower, $"{Prefix}.password_requires_lower" },
-            { ErrorCode.PasswordTooShort, $"{Prefix}.password_too_short" },
-            { ErrorCode.PasswordRequiresUniqueChars, $"{Prefix}.password_requires_unique_chars" },
             { ErrorCode.PasswordContainsPersonalData, $"{Prefix}.password_contains_personal_data" },
 
             // Role Management Errors (5000-5999)

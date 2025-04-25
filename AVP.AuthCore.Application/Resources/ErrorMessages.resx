@@ -194,28 +194,20 @@
     <comment>Used when username doesn't meet requirements</comment>
   </data>
   <data name="error.password_requires_digit" xml:space="preserve">
-    <value>Password must contain at least one digit</value>
+    <value>Passwords must have at least one digit ('0'-'9')</value>
     <comment>Used when password lacks numeric characters</comment>
   </data>
   <data name="error.password_requires_non_alphanumeric" xml:space="preserve">
-    <value>Password must contain at least one special character</value>
+    <value>Passwords must have at least one non alphanumeric character</value>
     <comment>Used when password lacks special characters</comment>
   </data>
   <data name="error.password_requires_upper" xml:space="preserve">
-    <value>Password must contain at least one uppercase letter</value>
+    <value>Passwords must have at least one uppercase ('A'-'Z')</value>
     <comment>Used when password lacks uppercase characters</comment>
   </data>
   <data name="error.password_requires_lower" xml:space="preserve">
     <value>Password must contain at least one lowercase letter</value>
     <comment>Used when password lacks lowercase characters</comment>
-  </data>
-  <data name="error.password_too_short" xml:space="preserve">
-    <value>Password must be at least {0} characters long</value>
-    <comment>Used when password is too short</comment>
-  </data>
-  <data name="error.password_requires_unique_chars" xml:space="preserve">
-    <value>Password must contain at least {0} unique characters</value>
-    <comment>Used when password lacks character variety</comment>
   </data>
   <data name="error.password_contains_personal_data" xml:space="preserve">
     <value>Password cannot contain personal information</value>

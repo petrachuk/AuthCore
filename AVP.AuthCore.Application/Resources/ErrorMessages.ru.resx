@@ -194,7 +194,7 @@
     <comment>Когда имя пользователя не соответствует требованиям</comment>
   </data>
   <data name="error.password_requires_digit" xml:space="preserve">
-    <value>Пароль должен содержать хотя бы одну цифру</value>
+    <value>Пароль должен содержать хотя бы одну цифру ('0'-'9')</value>
     <comment>Когда в пароле отсутствуют цифры</comment>
   </data>
   <data name="error.password_requires_non_alphanumeric" xml:space="preserve">
@@ -202,20 +202,12 @@
     <comment>Когда в пароле отсутствуют специальные символы</comment>
   </data>
   <data name="error.password_requires_upper" xml:space="preserve">
-    <value>Пароль должен содержать хотя бы одну заглавную букву</value>
+    <value>Пароль должен содержать хотя бы одну заглавную букву ('A'-'Z')</value>
     <comment>Когда в пароле отсутствуют заглавные буквы</comment>
   </data>
   <data name="error.password_requires_lower" xml:space="preserve">
     <value>Пароль должен содержать хотя бы одну строчную букву</value>
     <comment>Когда в пароле отсутствуют строчные буквы</comment>
-  </data>
-  <data name="error.password_too_short" xml:space="preserve">
-    <value>Пароль должен быть не менее {0} символов</value>
-    <comment>Когда пароль слишком короткий</comment>
-  </data>
-  <data name="error.password_requires_unique_chars" xml:space="preserve">
-    <value>Пароль должен содержать не менее {0} уникальных символов</value>
-    <comment>Когда в пароле недостаточно разнообразных символов</comment>
   </data>
   <data name="error.password_contains_personal_data" xml:space="preserve">
     <value>Пароль не может содержать персональные данные</value>

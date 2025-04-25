@@ -7,9 +7,13 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
 using Microsoft.Extensions.Localization;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Mvc;
 using Serilog;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using AVP.AuthCore.Application.Interfaces;
 using AVP.AuthCore.Application.Services;
+using AVP.AuthCore.Application.Validation;
 using AVP.AuthCore.Persistence;
 using AVP.AuthCore.Persistence.Entities;
 using AVP.AuthCore.Infrastructure.Logging;
@@ -38,6 +42,50 @@ namespace AVP.AuthCore.API
                 // Add services to the container.
 
                 builder.Services.AddControllers();
+
+                builder.Services.AddLocalization(options => options.ResourcesPath = string.Empty);
+
+                ValidatorOptions.Global.LanguageManager = new FluentValidation.Resources.LanguageManager
+                {
+                    Culture = new CultureInfo("ru")
+                };
+
+                builder.Services
+                    .AddFluentValidationAutoValidation()
+                    .AddFluentValidationClientsideAdapters();
+                builder.Services
+                    .AddValidatorsFromAssemblyContaining<LoginRequestValidator>()
+                    .AddValidatorsFromAssemblyContaining<RefreshRequestValidator>()
+                    .AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
+
+                builder.Services.Configure<ApiBehaviorOptions>(options =>
+                {
+                    options.InvalidModelStateResponseFactory = context =>
+                    {
+                        var errors = context.ModelState
+                            .Where(e => e.Value?.Errors.Count > 0)
+                            .ToDictionary(
+                                kvp => kvp.Key,
+                                kvp => kvp.Value!.Errors.Select(err => err.ErrorMessage).ToArray()
+                            );
+
+                        var problemDetails = new ValidationProblemDetails(errors)
+                        {
+                            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                            Title = "Bad Request",
+                            Status = StatusCodes.Status400BadRequest,
+                            Instance = context.HttpContext.Request.Path,
+                            Extensions =
+                            {
+                                // Добавляем traceId
+                                ["traceId"] = context.HttpContext.TraceIdentifier
+                            }
+                        };
+
+                        return new BadRequestObjectResult(problemDetails);
+                    };
+                });
+
                 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
                 builder.Services.AddEndpointsApiExplorer();
                 builder.Services.AddSwaggerGen(options =>
@@ -63,7 +111,7 @@ namespace AVP.AuthCore.API
                                     Id = "Bearer"
                                 }
                             },
-                            Array.Empty<string>()
+                            []
                         }
                     });
                 });
@@ -90,8 +138,6 @@ namespace AVP.AuthCore.API
                             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]!))
                         };
                     });
-
-                builder.Services.AddLocalization(options => options.ResourcesPath = string.Empty);
 
                 // конфигурация БД
                 builder.Services.AddDbContext<AuthDbContext>(options =>
