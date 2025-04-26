@@ -1,5 +1,6 @@
 using System.Text;
 using System.Globalization;
+using AVP.AuthCore.Application.DTOs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Identity;
@@ -37,7 +38,7 @@ namespace AVP.AuthCore.API
                 Log.Information("Starting up the app...");
                 var builder = WebApplication.CreateBuilder(args);
 
-                builder.Host.UseSerilog(); // <-- подключение Serilog
+                builder.Host.UseSerilog(); // подключение Serilog
 
                 // Add services to the container.
 
@@ -90,6 +91,18 @@ namespace AVP.AuthCore.API
                 builder.Services.AddEndpointsApiExplorer();
                 builder.Services.AddSwaggerGen(options =>
                 {
+                    options.SwaggerDoc("v1", new OpenApiInfo { Title = "AVP.AuthCore", Version = "v1" });
+
+                    // Документация на основе комментариев из XML
+                    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                    options.IncludeXmlComments(xmlPath);
+
+                    // Подключаем XML-документацию сборки с DTO:
+                    xmlFile = $"{typeof(LoginRequest).Assembly.GetName().Name}.xml";
+                    xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                    options.IncludeXmlComments(xmlPath);
+
                     options.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, new OpenApiSecurityScheme
                     {
                         Name = "Authorization",
