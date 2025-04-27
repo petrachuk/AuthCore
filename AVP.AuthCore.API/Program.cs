@@ -1,4 +1,4 @@
-using System.Text;
+п»їusing System.Text;
 using System.Globalization;
 using AVP.AuthCore.Application.DTOs;
 using Microsoft.EntityFrameworkCore;
@@ -27,7 +27,7 @@ namespace AVP.AuthCore.API
     {
         public static void Main(string[] args)
         {
-            // Настройка Serilog
+            // РќР°СЃС‚СЂРѕР№РєР° Serilog
             Log.Logger = new LoggerConfiguration()
                 .ReadFrom.Configuration(new ConfigurationBuilder()
                     .AddJsonFile("appsettings.json")
@@ -40,14 +40,14 @@ namespace AVP.AuthCore.API
                 Log.Information("Starting up the app...");
                 var builder = WebApplication.CreateBuilder(args);
 
-                builder.Host.UseSerilog(); // подключение Serilog
+                builder.Host.UseSerilog(); // РїРѕРґРєР»СЋС‡РµРЅРёРµ Serilog
 
                 // Add services to the container.
                 builder.Services
                     .AddOptions<JwtSettings>()
                     .Bind(builder.Configuration.GetSection("JwtSettings"))
                     .ValidateDataAnnotations()
-                    .ValidateOnStart(); // важно! проверит при старте
+                    .ValidateOnStart(); // РІР°Р¶РЅРѕ! РїСЂРѕРІРµСЂРёС‚ РїСЂРё СЃС‚Р°СЂС‚Рµ
 
                 builder.Services
                     .AddOptions<IdentitySettings>()
@@ -55,11 +55,11 @@ namespace AVP.AuthCore.API
                     .ValidateDataAnnotations()
                     .ValidateOnStart();
 
-                // Регистрируем настройки как сервисы
+                // Р РµРіРёСЃС‚СЂРёСЂСѓРµРј РЅР°СЃС‚СЂРѕР№РєРё РєР°Рє СЃРµСЂРІРёСЃС‹
                 builder.Services.AddScoped<JwtSettings>(sp => sp.GetRequiredService<IOptions<JwtSettings>>().Value);
                 builder.Services.AddScoped<IdentitySettings>(sp => sp.GetRequiredService<IOptions<IdentitySettings>>().Value);
 
-                // перезагрузка данных при изменении файла настроек
+                // РїРµСЂРµР·Р°РіСЂСѓР·РєР° РґР°РЅРЅС‹С… РїСЂРё РёР·РјРµРЅРµРЅРёРё С„Р°Р№Р»Р° РЅР°СЃС‚СЂРѕРµРє
                 builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
                 // Register IAuthService with its implementation
@@ -102,7 +102,7 @@ namespace AVP.AuthCore.API
                             Instance = context.HttpContext.Request.Path,
                             Extensions =
                             {
-                                // Добавляем traceId
+                                // Р”РѕР±Р°РІР»СЏРµРј traceId
                                 ["traceId"] = context.HttpContext.TraceIdentifier
                             }
                         };
@@ -117,12 +117,12 @@ namespace AVP.AuthCore.API
                 {
                     options.SwaggerDoc("v1", new OpenApiInfo { Title = "AVP.AuthCore", Version = "v1" });
 
-                    // Документация на основе комментариев из XML
+                    // Р”РѕРєСѓРјРµРЅС‚Р°С†РёСЏ РЅР° РѕСЃРЅРѕРІРµ РєРѕРјРјРµРЅС‚Р°СЂРёРµРІ РёР· XML
                     var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
                     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                     options.IncludeXmlComments(xmlPath);
 
-                    // Подключаем XML-документацию сборки с DTO:
+                    // РџРѕРґРєР»СЋС‡Р°РµРј XML-РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ СЃР±РѕСЂРєРё СЃ DTO:
                     xmlFile = $"{typeof(LoginRequest).Assembly.GetName().Name}.xml";
                     xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                     options.IncludeXmlComments(xmlPath);
@@ -134,7 +134,7 @@ namespace AVP.AuthCore.API
                         Scheme = "Bearer",
                         BearerFormat = "JWT",
                         In = ParameterLocation.Header,
-                        Description = "Введите токен JWT в формате: Bearer {токен}"
+                        Description = "Р’РІРµРґРёС‚Рµ С‚РѕРєРµРЅ JWT РІ С„РѕСЂРјР°С‚Рµ: Bearer {С‚РѕРєРµРЅ}"
                     });
 
                     options.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -159,24 +159,24 @@ namespace AVP.AuthCore.API
                     {
                         options.TokenValidationParameters = new TokenValidationParameters
                         {
-                            // указывает, будет ли валидироваться издатель при валидации токена
+                            // СѓРєР°Р·С‹РІР°РµС‚, Р±СѓРґРµС‚ Р»Рё РІР°Р»РёРґРёСЂРѕРІР°С‚СЊСЃСЏ РёР·РґР°С‚РµР»СЊ РїСЂРё РІР°Р»РёРґР°С†РёРё С‚РѕРєРµРЅР°
                             ValidateIssuer = true,
-                            // строка, представляющая издателя
+                            // СЃС‚СЂРѕРєР°, РїСЂРµРґСЃС‚Р°РІР»СЏСЋС‰Р°СЏ РёР·РґР°С‚РµР»СЏ
                             ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
-                            // будет ли валидироваться потребитель токена
+                            // Р±СѓРґРµС‚ Р»Рё РІР°Р»РёРґРёСЂРѕРІР°С‚СЊСЃСЏ РїРѕС‚СЂРµР±РёС‚РµР»СЊ С‚РѕРєРµРЅР°
                             ValidateAudience = true,
-                            // установка потребителя токена
+                            // СѓСЃС‚Р°РЅРѕРІРєР° РїРѕС‚СЂРµР±РёС‚РµР»СЏ С‚РѕРєРµРЅР°
                             ValidAudience = builder.Configuration["JwtSettings:Audience"],
-                            // будет ли валидироваться время существования
+                            // Р±СѓРґРµС‚ Р»Рё РІР°Р»РёРґРёСЂРѕРІР°С‚СЊСЃСЏ РІСЂРµРјСЏ СЃСѓС‰РµСЃС‚РІРѕРІР°РЅРёСЏ
                             ValidateLifetime = true,
-                            // валидация ключа безопасности
+                            // РІР°Р»РёРґР°С†РёСЏ РєР»СЋС‡Р° Р±РµР·РѕРїР°СЃРЅРѕСЃС‚Рё
                             ValidateIssuerSigningKey = true,
-                            // установка ключа безопасности
+                            // СѓСЃС‚Р°РЅРѕРІРєР° РєР»СЋС‡Р° Р±РµР·РѕРїР°СЃРЅРѕСЃС‚Рё
                             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]!))
                         };
                     });
 
-                // конфигурация БД
+                // РєРѕРЅС„РёРіСѓСЂР°С†РёСЏ Р‘Р”
                 builder.Services.AddDbContext<AuthDbContext>(options =>
                     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -184,7 +184,7 @@ namespace AVP.AuthCore.API
                     .AddEntityFrameworkStores<AuthDbContext>()
                     .AddDefaultTokenProviders();
 
-                // Настраиваем локализацию для использования ресурсов из другого проекта
+                // РќР°СЃС‚СЂР°РёРІР°РµРј Р»РѕРєР°Р»РёР·Р°С†РёСЋ РґР»СЏ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ СЂРµСЃСѓСЂСЃРѕРІ РёР· РґСЂСѓРіРѕРіРѕ РїСЂРѕРµРєС‚Р°
                 builder.Services.AddSingleton<IStringLocalizerFactory, ResourceManagerStringLocalizerFactory>();
                 builder.Services.AddSingleton<IStringLocalizer>(provider =>
                 {
@@ -215,9 +215,9 @@ namespace AVP.AuthCore.API
 
                 app.UseHttpsRedirection();
 
-                // добавляем middleware для логирования исключений
+                // РґРѕР±Р°РІР»СЏРµРј middleware РґР»СЏ Р»РѕРіРёСЂРѕРІР°РЅРёСЏ РёСЃРєР»СЋС‡РµРЅРёР№
                 app.UseMiddleware<ExceptionLoggingMiddleware>();
-                // добавляет логирование HTTP-запросов
+                // РґРѕР±Р°РІР»СЏРµС‚ Р»РѕРіРёСЂРѕРІР°РЅРёРµ HTTP-Р·Р°РїСЂРѕСЃРѕРІ
                 app.UseSerilogRequestLogging();
 
                 app.UseAuthentication();
