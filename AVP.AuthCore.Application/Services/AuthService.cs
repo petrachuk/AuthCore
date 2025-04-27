@@ -55,7 +55,7 @@ namespace AVP.AuthCore.Application.Services
             // Назначить роль
             await userManager.AddToRoleAsync(user, defaultRole);
 
-            var accessToken = await tokenService.GenerateAccessTokenAsync(user, [ defaultRole ]);
+            var accessToken = await tokenService.GenerateAccessTokenAsync(user, new List<string>{ defaultRole });
             var refreshToken = await tokenService.GenerateRefreshTokenAsync();
             var expires = DateTime.UtcNow.AddDays(jwtSettingsMonitor.CurrentValue.RefreshTokenLifetimeDays);
 
@@ -115,7 +115,6 @@ namespace AVP.AuthCore.Application.Services
 
             var principal = tokenService.GetPrincipalFromExpiredToken(request.AccessToken);
             var userId = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
             if (userId is null)
             {
                 logger.LogWarning("Refresh failed: Invalid access token");
@@ -123,24 +122,32 @@ namespace AVP.AuthCore.Application.Services
             }
 
             var user = await userManager.FindByIdAsync(userId);
-            if (user == null)
+            if (user is null)
             {
                 logger.LogWarning("Refresh failed: User with ID {UserId} not found", userId);
                 return OperationResult<AuthResponse>.Fail(ErrorCode.UserNotFound);
             }
 
             var storedToken = await context.RefreshTokens
-                .FirstOrDefaultAsync(x => x.Token == request.RefreshToken && x.UserId == user.Id && !x.Revoked);
+                .FirstOrDefaultAsync(x => x.Token == request.RefreshToken && !x.Revoked);
 
-            if (storedToken == null || storedToken.Expires < DateTime.UtcNow)
+            switch (storedToken)
             {
-                logger.LogWarning("Refresh failed for user {Email}: Invalid or revoked refresh token", user.Email);
-                return OperationResult<AuthResponse>.Fail(ErrorCode.RefreshTokenExpired);
+                case null:
+                    logger.LogWarning("Refresh failed: Refresh token not found for user {Email}", user.Email);
+                    return OperationResult<AuthResponse>.Fail(ErrorCode.RefreshTokenNotFound);
+
+                case { UserId: not null, Expires: var expiry } when expiry < DateTime.UtcNow:
+                    logger.LogWarning("Refresh failed: Expired refresh token for user {Email}", user.Email);
+                    return OperationResult<AuthResponse>.Fail(ErrorCode.RefreshTokenExpired);
+
+                case { UserId: not null, UserId: var tokenUserId } when tokenUserId != user.Id:
+                    logger.LogWarning("Refresh failed: Refresh token belongs to another user {Email}", user.Email);
+                    return OperationResult<AuthResponse>.Fail(ErrorCode.RefreshTokenInvalid);
             }
 
             logger.LogInformation("Refreshing tokens for user {Email}", user.Email);
 
-            // отзыв старого токена
             storedToken.Revoked = true;
             var newRefreshToken = await tokenService.GenerateRefreshTokenAsync();
             var expires = DateTime.UtcNow.AddDays(7);
@@ -156,7 +163,6 @@ namespace AVP.AuthCore.Application.Services
             await context.SaveChangesAsync();
 
             var roles = await userManager.GetRolesAsync(user);
-
             var newAccessToken = await tokenService.GenerateAccessTokenAsync(user, roles);
 
             logger.LogInformation("Token refreshed successfully for user {Email}", user.Email);

@@ -11,7 +11,7 @@ namespace AVP.AuthCore.Application.Services
 {
     public class TokenService(JwtSettings jwtSettings) : ITokenService
     {
-        public Task<string> GenerateAccessTokenAsync(IdentityUser user, IList<string> roles)
+        public Task<string> GenerateAccessTokenAsync(IdentityUser user, IEnumerable<string> roles)
         {
             var claims = new List<Claim>
             {
