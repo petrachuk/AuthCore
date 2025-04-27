@@ -27,7 +27,7 @@ namespace AVP.AuthCore.API
     {
         public static void Main(string[] args)
         {
-            // Настройка Serilog
+            // Инициализация логирования до запуска приложения
             Log.Logger = new LoggerConfiguration()
                 .ReadFrom.Configuration(new ConfigurationBuilder()
                     .AddJsonFile("appsettings.json")
@@ -40,14 +40,18 @@ namespace AVP.AuthCore.API
                 Log.Information("Starting up the app...");
                 var builder = WebApplication.CreateBuilder(args);
 
-                builder.Host.UseSerilog(); // подключение Serilog
+                // Перезагрузка данных при изменении файла настроек
+                builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                    .AddEnvironmentVariables();
 
-                // Add services to the container.
+                builder.Host.UseSerilog(); // Подключение Serilog
+
+                // Регистрация сервисов
                 builder.Services
                     .AddOptions<JwtSettings>()
                     .Bind(builder.Configuration.GetSection("JwtSettings"))
                     .ValidateDataAnnotations()
-                    .ValidateOnStart(); // важно! проверит при старте
+                    .ValidateOnStart();
 
                 builder.Services
                     .AddOptions<IdentitySettings>()
@@ -59,17 +63,14 @@ namespace AVP.AuthCore.API
                 builder.Services.AddScoped<JwtSettings>(sp => sp.GetRequiredService<IOptions<JwtSettings>>().Value);
                 builder.Services.AddScoped<IdentitySettings>(sp => sp.GetRequiredService<IOptions<IdentitySettings>>().Value);
 
-                // перезагрузка данных при изменении файла настроек
-                builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-
-                // Register IAuthService with its implementation
+                // Регистрируем сервисы
                 builder.Services.AddScoped<IAuthService, AuthService>();
                 builder.Services.AddScoped<ITokenService, TokenService>();
 
                 builder.Services.AddControllers();
-
                 builder.Services.AddLocalization(options => options.ResourcesPath = string.Empty);
 
+                // Настройка FluentValidation
                 ValidatorOptions.Global.LanguageManager = new FluentValidation.Resources.LanguageManager
                 {
                     Culture = new CultureInfo("ru")
@@ -83,6 +84,7 @@ namespace AVP.AuthCore.API
                     .AddValidatorsFromAssemblyContaining<RefreshRequestValidator>()
                     .AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
 
+                // Настройка модели ошибки в API
                 builder.Services.Configure<ApiBehaviorOptions>(options =>
                 {
                     options.InvalidModelStateResponseFactory = context =>
@@ -101,31 +103,37 @@ namespace AVP.AuthCore.API
                             Status = StatusCodes.Status400BadRequest,
                             Instance = context.HttpContext.Request.Path,
                             Extensions =
-                            {
-                                // Добавляем traceId
-                                ["traceId"] = context.HttpContext.TraceIdentifier
-                            }
+                        {
+                            // Добавляем traceId
+                            ["traceId"] = context.HttpContext.TraceIdentifier
+                        }
                         };
 
                         return new BadRequestObjectResult(problemDetails);
                     };
                 });
 
-                // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+                // Настройка Swagger
                 builder.Services.AddEndpointsApiExplorer();
                 builder.Services.AddSwaggerGen(options =>
                 {
                     options.SwaggerDoc("v1", new OpenApiInfo { Title = "AVP.AuthCore", Version = "v1" });
 
-                    // Документация на основе комментариев из XML
+                    // Проверка существования XML-файлов для документации
                     var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
                     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-                    options.IncludeXmlComments(xmlPath);
+                    if (File.Exists(xmlPath))
+                    {
+                        options.IncludeXmlComments(xmlPath);
+                    }
 
-                    // Подключаем XML-документацию сборки с DTO:
+                    // Подключение документации DTO
                     xmlFile = $"{typeof(LoginRequest).Assembly.GetName().Name}.xml";
                     xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-                    options.IncludeXmlComments(xmlPath);
+                    if (File.Exists(xmlPath))
+                    {
+                        options.IncludeXmlComments(xmlPath);
+                    }
 
                     options.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, new OpenApiSecurityScheme
                     {
@@ -138,45 +146,39 @@ namespace AVP.AuthCore.API
                     });
 
                     options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
                     {
+                        new OpenApiSecurityScheme
                         {
-                            new OpenApiSecurityScheme
+                            Reference = new OpenApiReference
                             {
-                                Reference = new OpenApiReference
-                                {
-                                    Type = ReferenceType.SecurityScheme,
-                                    Id = "Bearer"
-                                }
-                            },
-                            []
-                        }
-                    });
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new List<string>()
+                    }
+                });
                 });
 
+                // Настройка авторизации и аутентификации
                 builder.Services.AddAuthorization();
                 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     .AddJwtBearer(options =>
                     {
                         options.TokenValidationParameters = new TokenValidationParameters
                         {
-                            // указывает, будет ли валидироваться издатель при валидации токена
                             ValidateIssuer = true,
-                            // строка, представляющая издателя
                             ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
-                            // будет ли валидироваться потребитель токена
                             ValidateAudience = true,
-                            // установка потребителя токена
                             ValidAudience = builder.Configuration["JwtSettings:Audience"],
-                            // будет ли валидироваться время существования
                             ValidateLifetime = true,
-                            // валидация ключа безопасности
                             ValidateIssuerSigningKey = true,
-                            // установка ключа безопасности
                             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]!))
                         };
                     });
 
-                // конфигурация БД
+                // Конфигурация базы данных
                 builder.Services.AddDbContext<AuthDbContext>(options =>
                     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -184,7 +186,7 @@ namespace AVP.AuthCore.API
                     .AddEntityFrameworkStores<AuthDbContext>()
                     .AddDefaultTokenProviders();
 
-                // Настраиваем локализацию для использования ресурсов из другого проекта
+                // Локализация
                 builder.Services.AddSingleton<IStringLocalizerFactory, ResourceManagerStringLocalizerFactory>();
                 builder.Services.AddSingleton<IStringLocalizer>(provider =>
                 {
@@ -194,11 +196,8 @@ namespace AVP.AuthCore.API
 
                 var app = builder.Build();
 
-                var supportedCultures = new[]
-                {
-                    new CultureInfo("en"),
-                    new CultureInfo("ru")
-                };
+                // Локализация
+                var supportedCultures = new[] { new CultureInfo("en"), new CultureInfo("ru") };
                 app.UseRequestLocalization(new RequestLocalizationOptions
                 {
                     DefaultRequestCulture = new RequestCulture("en"),
@@ -206,7 +205,7 @@ namespace AVP.AuthCore.API
                     SupportedUICultures = supportedCultures
                 });
 
-                // Configure the HTTP request pipeline.
+                // Конфигурация pipeline
                 if (app.Environment.IsDevelopment())
                 {
                     app.UseSwagger();
@@ -215,9 +214,9 @@ namespace AVP.AuthCore.API
 
                 app.UseHttpsRedirection();
 
-                // добавляем middleware для логирования исключений
+                // Middleware для логирования ошибок
                 app.UseMiddleware<ExceptionLoggingMiddleware>();
-                // добавляет логирование HTTP-запросов
+                // Логирование HTTP-запросов
                 app.UseSerilogRequestLogging();
 
                 app.UseAuthentication();
@@ -237,4 +236,5 @@ namespace AVP.AuthCore.API
             }
         }
     }
+
 }

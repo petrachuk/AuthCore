@@ -110,7 +110,7 @@ namespace AVP.AuthCore.Tests.Unit.Application.Services
         [InlineData("this-is-not-a-valid-jwt", typeof(SecurityTokenMalformedException), "IDX12741")]
         [InlineData("invalid.token.here", typeof(ArgumentException), "IDX12729")]
         [InlineData("eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NSIsIm5hbWUiOiJKb2huIEdvbGQiLCJhZG1pbiI6dHJ1ZX0K.zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz", typeof(SecurityTokenInvalidSignatureException), null)]
-        public void GetPrincipalFromExpiredToken_InvalidFormat_ThrowsExpectedException(string token, Type expectedExceptionType, string expectedMessage)
+        public void GetPrincipalFromExpiredToken_InvalidFormat_ThrowsExpectedException(string token, Type expectedExceptionType, string? expectedMessage)
         {
             // Act & Assert
             var ex = Assert.Throws(expectedExceptionType, () => _tokenService.GetPrincipalFromExpiredToken(token));
