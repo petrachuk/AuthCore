@@ -18,6 +18,8 @@ using AVP.AuthCore.Application.Validation;
 using AVP.AuthCore.Persistence;
 using AVP.AuthCore.Persistence.Entities;
 using AVP.AuthCore.Infrastructure.Logging;
+using AVP.AuthCore.Application.Common.Settings;
+using Microsoft.Extensions.Options;
 
 namespace AVP.AuthCore.API
 {
@@ -41,6 +43,28 @@ namespace AVP.AuthCore.API
                 builder.Host.UseSerilog(); // подключение Serilog
 
                 // Add services to the container.
+                builder.Services
+                    .AddOptions<JwtSettings>()
+                    .Bind(builder.Configuration.GetSection("JwtSettings"))
+                    .ValidateDataAnnotations()
+                    .ValidateOnStart(); // важно! проверит при старте
+
+                builder.Services
+                    .AddOptions<IdentitySettings>()
+                    .Bind(builder.Configuration.GetSection("Identity"))
+                    .ValidateDataAnnotations()
+                    .ValidateOnStart();
+
+                // –егистрируем настройки как сервисы
+                builder.Services.AddScoped<JwtSettings>(sp => sp.GetRequiredService<IOptions<JwtSettings>>().Value);
+                builder.Services.AddScoped<IdentitySettings>(sp => sp.GetRequiredService<IOptions<IdentitySettings>>().Value);
+
+                // перезагрузка данных при изменении файла настроек
+                builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+
+                // Register IAuthService with its implementation
+                builder.Services.AddScoped<IAuthService, AuthService>();
+                builder.Services.AddScoped<ITokenService, TokenService>();
 
                 builder.Services.AddControllers();
 
@@ -159,10 +183,6 @@ namespace AVP.AuthCore.API
                 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
                     .AddEntityFrameworkStores<AuthDbContext>()
                     .AddDefaultTokenProviders();
-
-                // Register IAuthService with its implementation
-                builder.Services.AddScoped<IAuthService, AuthService>();
-                builder.Services.AddScoped<ITokenService, TokenService>();
 
                 // Ќастраиваем локализацию дл€ использовани€ ресурсов из другого проекта
                 builder.Services.AddSingleton<IStringLocalizerFactory, ResourceManagerStringLocalizerFactory>();

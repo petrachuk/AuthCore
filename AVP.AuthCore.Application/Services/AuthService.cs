@@ -9,7 +9,8 @@ using AVP.AuthCore.Persistence;
 using AVP.AuthCore.Persistence.Entities;
 using AVP.AuthCore.Application.Common.Results;
 using AVP.AuthCore.Application.Resources;
-using Microsoft.Extensions.Configuration;
+using AVP.AuthCore.Application.Common.Settings;
+using Microsoft.Extensions.Options;
 
 namespace AVP.AuthCore.Application.Services
 {
@@ -19,7 +20,8 @@ namespace AVP.AuthCore.Application.Services
         SignInManager<ApplicationUser> signInManager,
         ITokenService tokenService,
         AuthDbContext context,
-        IConfiguration config,
+        IOptionsMonitor<IdentitySettings> identitySettingsMonitor,
+        IOptionsMonitor<JwtSettings> jwtSettingsMonitor,
         ILogger<ErrorMessages> logger) : IAuthService
     {
         public async Task<OperationResult<AuthResponse>> RegisterAsync(RegisterRequest request)
@@ -44,7 +46,7 @@ namespace AVP.AuthCore.Application.Services
             }
 
             // Добавить роль по умолчанию
-            var defaultRole = config["Identity:DefaultUserRole"] ?? "User";
+            var defaultRole = identitySettingsMonitor.CurrentValue.DefaultUserRole;
 
             // Убедиться, что такая роль есть
             if (!await roleManager.RoleExistsAsync(defaultRole))
@@ -55,7 +57,7 @@ namespace AVP.AuthCore.Application.Services
 
             var accessToken = await tokenService.GenerateAccessTokenAsync(user, [ defaultRole ]);
             var refreshToken = await tokenService.GenerateRefreshTokenAsync();
-            var expires = DateTime.UtcNow.AddDays(7);
+            var expires = DateTime.UtcNow.AddDays(jwtSettingsMonitor.CurrentValue.RefreshTokenLifetimeDays);
 
             context.RefreshTokens.Add(new RefreshToken
             {
