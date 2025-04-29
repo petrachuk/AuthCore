@@ -69,7 +69,7 @@ namespace AVP.AuthCore.Application.Services
             await context.SaveChangesAsync();
 
             logger.LogInformation("User {Email} registered successfully", request.Email);
-            return OperationResult<AuthResponse>.Ok(new AuthResponse(accessToken, refreshToken, expires));
+            return OperationResult<AuthResponse>.Ok(new AuthResponse(accessToken, refreshToken, expires), isCreated: true);
         }
 
         public async Task<OperationResult<AuthResponse>> LoginAsync(LoginRequest request)

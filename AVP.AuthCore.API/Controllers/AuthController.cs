@@ -22,7 +22,7 @@ namespace AVP.AuthCore.API.Controllers
         /// <returns>The registration result</returns>
         [AllowAnonymous]
         [HttpPost("register")]
-        [ProducesResponseType(typeof(AuthResponse), 200)]
+        [ProducesResponseType(typeof(AuthResponse), 201)]
         [ProducesResponseType(400)]
         [ProducesResponseType(500)]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)

@@ -13,7 +13,8 @@ namespace AVP.AuthCore.API.Extensions
             if (result.IsSuccess)
             {
                 logger.LogInformation("Request succeeded");
-                return new NoContentResult();
+
+                return result.IsCreated ? new StatusCodeResult(StatusCodes.Status201Created) : new NoContentResult();
             }
 
             logger.LogWarning("Request failed with errors: {Errors}", string.Join(" ", result.Details ?? []));
@@ -25,6 +26,16 @@ namespace AVP.AuthCore.API.Extensions
             if (result.IsSuccess)
             {
                 logger.LogInformation("Request succeeded with data: {Data}", result.Data);
+
+                if (result.IsCreated)
+                {
+                    return new ObjectResult(result.Data)
+                    {
+                        StatusCode = StatusCodes.Status201Created
+                        // Опционально: Location = ..., если будет ссылка на созданный ресурс
+                    };
+                }
+
                 return new OkObjectResult(result.Data);
             }
 
