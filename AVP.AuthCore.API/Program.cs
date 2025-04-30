@@ -138,6 +138,31 @@ namespace AVP.AuthCore.API
                     };
                 });
 
+                // отключение лишних форматтеров
+                builder.Services.Configure<MvcOptions>(options =>
+                {
+                    // Убираем поддержку text/plain (строковый форматтер)
+                    var stringFormatter = options.OutputFormatters
+                        .OfType<Microsoft.AspNetCore.Mvc.Formatters.StringOutputFormatter>()
+                        .FirstOrDefault();
+
+                    if (stringFormatter is not null)
+                    {
+                        options.OutputFormatters.Remove(stringFormatter);
+                    }
+
+                    // Настраиваем JSON входной форматтер (только application/json)
+                    var jsonInputFormatter = options.InputFormatters
+                        .OfType<Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonInputFormatter>()
+                        .FirstOrDefault();
+
+                    if (jsonInputFormatter is not null)
+                    {
+                        jsonInputFormatter.SupportedMediaTypes.Clear();
+                        jsonInputFormatter.SupportedMediaTypes.Add("application/json");
+                    }
+                });
+
                 // Настройка Swagger
                 builder.Services.AddEndpointsApiExplorer();
                 builder.Services.AddSwaggerGen(options =>
@@ -171,26 +196,34 @@ namespace AVP.AuthCore.API
                     });
 
                     options.AddSecurityRequirement(new OpenApiSecurityRequirement
-                {
                     {
-                        new OpenApiSecurityScheme
                         {
-                            Reference = new OpenApiReference
+                            new OpenApiSecurityScheme
                             {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
-                            }
-                        },
-                        new List<string>()
-                    }
-                });
+                                Reference = new OpenApiReference
+                                {
+                                    Type = ReferenceType.SecurityScheme,
+                                    Id = "Bearer"
+                                }
+                            },
+                            new List<string>()
+                        }
+                    });
                 });
 
                 // Конфигурация базы данных
                 builder.Services.AddDbContext<AuthDbContext>(options =>
                     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-                builder.Services.AddIdentityCore<ApplicationUser>()
+                builder.Services.AddIdentityCore<ApplicationUser>(options =>
+                    {
+                        options.Password.RequireDigit = true;
+                        options.Password.RequiredLength = 10;
+                        options.Password.RequireNonAlphanumeric = false;
+                        options.Password.RequireUppercase = true;
+                        options.Password.RequireLowercase = true;
+                        // Настройки блокировок, email-подтверждения и т.д. при необходимости
+                    })
                     .AddRoles<IdentityRole>()
                     .AddEntityFrameworkStores<AuthDbContext>()
                     .AddSignInManager()
@@ -249,5 +282,4 @@ namespace AVP.AuthCore.API
             }
         }
     }
-
 }
