@@ -102,10 +102,10 @@ namespace AVP.AuthCore.Tests.Unit.Application.Services
             // Arrange
             var request = new RegisterRequest { Email = "fail@example.com", Password = "BadPassword" };
             var identityErrors = new List<IdentityError>
-                { new IdentityError { Code = "DuplicateUserName", Description = "User already exists." } };
+                { new() { Code = "DuplicateUserName", Description = "User already exists." } };
 
             _userManagerMock.Setup(x => x.CreateAsync(It.IsAny<ApplicationUser>(), request.Password))
-                .ReturnsAsync(IdentityResult.Failed(identityErrors.ToArray()));
+                .ReturnsAsync(IdentityResult.Failed([.. identityErrors]));
 
             // Act
             var result = await _authService.RegisterAsync(request);
@@ -136,7 +136,7 @@ namespace AVP.AuthCore.Tests.Unit.Application.Services
                 .ReturnsAsync(SignInResult.Success);
 
             _userManagerMock.Setup(x => x.GetRolesAsync(user))
-                .ReturnsAsync(new List<string> { "User" });
+                .ReturnsAsync([ "User" ]);
 
             _tokenServiceMock.Setup(x => x.GenerateAccessTokenAsync(user, It.IsAny<IEnumerable<string>>()))
                 .ReturnsAsync("access-token");
@@ -194,7 +194,7 @@ namespace AVP.AuthCore.Tests.Unit.Application.Services
             var user = new ApplicationUser { Id = "userId", Email = "test@example.com" };
             var request = new RefreshRequest { AccessToken = "access-token", RefreshToken = "refresh-token" };
 
-            var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, user.Id) };
+            var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, user.Id) };
             var principal = new ClaimsPrincipal(new ClaimsIdentity(claims));
 
             _tokenServiceMock.Setup(x => x.GetPrincipalFromExpiredToken(request.AccessToken))
@@ -215,7 +215,7 @@ namespace AVP.AuthCore.Tests.Unit.Application.Services
                 .ReturnsAsync("new-refresh-token");
 
             _userManagerMock.Setup(x => x.GetRolesAsync(user))
-                .ReturnsAsync(new List<string> { "User" });
+                .ReturnsAsync([ "User" ]);
 
             _tokenServiceMock.Setup(x => x.GenerateAccessTokenAsync(user, It.IsAny<IEnumerable<string>>()))
                 .ReturnsAsync("new-access-token");
@@ -285,7 +285,7 @@ namespace AVP.AuthCore.Tests.Unit.Application.Services
             var user = new ApplicationUser { Id = "userId", Email = "test@example.com" };
             var request = new RefreshRequest { AccessToken = "access-token", RefreshToken = "invalid-refresh-token" };
 
-            var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, user.Id) };
+            var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, user.Id) };
             var principal = new ClaimsPrincipal(new ClaimsIdentity(claims));
 
             _tokenServiceMock.Setup(x => x.GetPrincipalFromExpiredToken(request.AccessToken))
@@ -312,7 +312,7 @@ namespace AVP.AuthCore.Tests.Unit.Application.Services
             var user = new ApplicationUser { Id = "userId", Email = "test@example.com" };
             var request = new RefreshRequest { AccessToken = "access-token", RefreshToken = "refresh-token" };
 
-            var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, user.Id) };
+            var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, user.Id) };
             var principal = new ClaimsPrincipal(new ClaimsIdentity(claims));
 
             _tokenServiceMock.Setup(x => x.GetPrincipalFromExpiredToken(request.AccessToken))
@@ -344,7 +344,7 @@ namespace AVP.AuthCore.Tests.Unit.Application.Services
             var user = new ApplicationUser { Id = "userId", Email = "test@example.com" };
             var request = new RefreshRequest { AccessToken = "access-token", RefreshToken = "refresh-token" };
 
-            var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, user.Id) };
+            var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, user.Id) };
             var principal = new ClaimsPrincipal(new ClaimsIdentity(claims));
 
             _tokenServiceMock.Setup(x => x.GetPrincipalFromExpiredToken(request.AccessToken))
@@ -375,7 +375,7 @@ namespace AVP.AuthCore.Tests.Unit.Application.Services
             // Arrange
             var request = new RefreshRequest { AccessToken = "access-token", RefreshToken = "refresh-token" };
 
-            var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, "userId") };
+            var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, "userId") };
             var principal = new ClaimsPrincipal(new ClaimsIdentity(claims));
 
             _tokenServiceMock.Setup(x => x.GetPrincipalFromExpiredToken(request.AccessToken))

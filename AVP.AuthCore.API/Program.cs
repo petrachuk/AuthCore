@@ -1,6 +1,5 @@
 ﻿using System.Text;
 using System.Globalization;
-using AVP.AuthCore.Application.DTOs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Identity;
@@ -9,9 +8,11 @@ using Microsoft.OpenApi.Models;
 using Microsoft.Extensions.Localization;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Serilog;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using AVP.AuthCore.Application.DTOs;
 using AVP.AuthCore.Application.Interfaces;
 using AVP.AuthCore.Application.Services;
 using AVP.AuthCore.Application.Validation;
@@ -19,7 +20,6 @@ using AVP.AuthCore.Persistence;
 using AVP.AuthCore.Persistence.Entities;
 using AVP.AuthCore.Infrastructure.Logging;
 using AVP.AuthCore.Application.Common.Settings;
-using Microsoft.Extensions.Options;
 using AVP.AuthCore.Infrastructure.HostedServices;
 
 namespace AVP.AuthCore.API
@@ -42,7 +42,8 @@ namespace AVP.AuthCore.API
                 var builder = WebApplication.CreateBuilder(args);
 
                 // Перезагрузка данных при изменении файла настроек
-                builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                builder.Configuration
+                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                     .AddEnvironmentVariables();
 
                 builder.Host.UseSerilog(); // Подключение Serilog
@@ -67,6 +68,29 @@ namespace AVP.AuthCore.API
                 // Регистрируем сервисы
                 builder.Services.AddScoped<IAuthService, AuthService>();
                 builder.Services.AddScoped<ITokenService, TokenService>();
+
+                // Настройка авторизации и аутентификации
+                builder.Services.AddAuthentication(options =>
+                    {
+                        // Используем JWT везде по умолчанию
+                        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+                        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                    })
+                    .AddJwtBearer(options =>
+                    {
+                        options.TokenValidationParameters = new TokenValidationParameters
+                        {
+                            ValidateIssuer = true,
+                            ValidateAudience = true,
+                            ValidateLifetime = true,
+                            ValidateIssuerSigningKey = true,
+                            ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+                            ValidAudience = builder.Configuration["JwtSettings:Audience"],
+                            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]!))
+                        };
+                    });
+                builder.Services.AddAuthorization();
 
                 builder.Services.AddControllers();
                 builder.Services.AddLocalization(options => options.ResourcesPath = string.Empty);
@@ -162,29 +186,14 @@ namespace AVP.AuthCore.API
                 });
                 });
 
-                // Настройка авторизации и аутентификации
-                builder.Services.AddAuthorization();
-                builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                    .AddJwtBearer(options =>
-                    {
-                        options.TokenValidationParameters = new TokenValidationParameters
-                        {
-                            ValidateIssuer = true,
-                            ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
-                            ValidateAudience = true,
-                            ValidAudience = builder.Configuration["JwtSettings:Audience"],
-                            ValidateLifetime = true,
-                            ValidateIssuerSigningKey = true,
-                            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]!))
-                        };
-                    });
-
                 // Конфигурация базы данных
                 builder.Services.AddDbContext<AuthDbContext>(options =>
                     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-                builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+                builder.Services.AddIdentityCore<ApplicationUser>()
+                    .AddRoles<IdentityRole>()
                     .AddEntityFrameworkStores<AuthDbContext>()
+                    .AddSignInManager()
                     .AddDefaultTokenProviders();
 
                 // Локализация

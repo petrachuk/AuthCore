@@ -55,7 +55,7 @@ namespace AVP.AuthCore.Application.Services
             // Назначить роль
             await userManager.AddToRoleAsync(user, defaultRole);
 
-            var accessToken = await tokenService.GenerateAccessTokenAsync(user, new List<string>{ defaultRole });
+            var accessToken = await tokenService.GenerateAccessTokenAsync(user, [ defaultRole ]);
             var refreshToken = await tokenService.GenerateRefreshTokenAsync();
             var expires = DateTime.UtcNow.AddDays(jwtSettingsMonitor.CurrentValue.RefreshTokenLifetimeDays);
 

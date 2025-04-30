@@ -5,6 +5,7 @@ using AVP.AuthCore.API.Extensions;
 using AVP.AuthCore.Application.Interfaces;
 using AVP.AuthCore.Application.DTOs;
 using AVP.AuthCore.Application.Resources;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace AVP.AuthCore.API.Controllers
 {
@@ -72,7 +73,7 @@ namespace AVP.AuthCore.API.Controllers
         /// <returns>The logout result</returns>
         [Authorize]
         [HttpPost("logout")]
-        [ProducesResponseType(200)]
+        [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [ProducesResponseType(401)]
         [ProducesResponseType(500)]
