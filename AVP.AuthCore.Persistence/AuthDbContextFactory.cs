@@ -10,10 +10,11 @@ namespace AVP.AuthCore.Persistence
         {
             var optionsBuilder = new DbContextOptionsBuilder<AuthDbContext>();
 
-            // загружаем конфигурацию из appsettings.json
+            // загружаем конфигурацию из переменных окружения
             var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetParent(Directory.GetCurrentDirectory())?.FullName ?? throw new InvalidOperationException())
                 .AddJsonFile("AVP.AuthCore.API/appsettings.json")
+                .AddEnvironmentVariables()
                 .Build();
 
             // получаем строку подключения из конфигурации

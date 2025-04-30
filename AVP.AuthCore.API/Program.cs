@@ -20,6 +20,7 @@ using AVP.AuthCore.Persistence.Entities;
 using AVP.AuthCore.Infrastructure.Logging;
 using AVP.AuthCore.Application.Common.Settings;
 using Microsoft.Extensions.Options;
+using AVP.AuthCore.Infrastructure.HostedServices;
 
 namespace AVP.AuthCore.API
 {
@@ -193,6 +194,9 @@ namespace AVP.AuthCore.API
                     var factory = provider.GetRequiredService<IStringLocalizerFactory>();
                     return factory.Create("ErrorMessages", "AVP.AuthCore.Application");
                 });
+
+                // автоочистка RefreshToken 
+                builder.Services.AddHostedService<RefreshTokenCleanupService>();
 
                 var app = builder.Build();
 

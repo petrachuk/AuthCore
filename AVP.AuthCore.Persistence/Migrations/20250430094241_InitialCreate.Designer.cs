@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AVP.AuthCore.Persistence.Migrations
 {
     [DbContext(typeof(AuthDbContext))]
-    [Migration("20250421191021_InitialCreate")]
+    [Migration("20250430094241_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -102,21 +102,32 @@ namespace AVP.AuthCore.Persistence.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ReplacedByToken")
-                        .HasColumnType("text");
+                        .HasMaxLength(88)
+                        .HasColumnType("character varying(88)");
 
                     b.Property<bool>("Revoked")
-                        .HasColumnType("boolean");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Token")
                         .IsRequired()
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
+                        .HasMaxLength(88)
+                        .HasColumnType("character varying(88)");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Expires");
+
+                    b.HasIndex("Revoked");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
 
                     b.HasIndex("UserId");
 

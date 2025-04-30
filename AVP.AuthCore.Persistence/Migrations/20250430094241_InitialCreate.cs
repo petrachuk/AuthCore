@@ -162,12 +162,12 @@ namespace AVP.AuthCore.Persistence.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Token = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: false),
+                    Token = table.Column<string>(type: "character varying(88)", maxLength: 88, nullable: false),
+                    Revoked = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Expires = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Revoked = table.Column<bool>(type: "boolean", nullable: false),
-                    ReplacedByToken = table.Column<string>(type: "text", nullable: true),
-                    UserId = table.Column<string>(type: "text", nullable: false)
+                    ReplacedByToken = table.Column<string>(type: "character varying(88)", maxLength: 88, nullable: true),
+                    UserId = table.Column<string>(type: "character varying(36)", maxLength: 36, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -215,6 +215,22 @@ namespace AVP.AuthCore.Persistence.Migrations
                 name: "UserNameIndex",
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RefreshTokens_Expires",
+                table: "RefreshTokens",
+                column: "Expires");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RefreshTokens_Revoked",
+                table: "RefreshTokens",
+                column: "Revoked");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RefreshTokens_Token",
+                table: "RefreshTokens",
+                column: "Token",
                 unique: true);
 
             migrationBuilder.CreateIndex(
