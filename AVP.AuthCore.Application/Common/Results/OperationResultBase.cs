@@ -1,4 +1,5 @@
 ﻿using AVP.AuthCore.Application.Common.Errors;
+using Microsoft.AspNetCore.Identity;
 
 namespace AVP.AuthCore.Application.Common.Results
 {
@@ -9,8 +10,6 @@ namespace AVP.AuthCore.Application.Common.Results
         // основной код ошибки
         public ErrorCode? Error { get; protected set; }
         // дополнительные коды ошибок
-        public IEnumerable<ErrorCode>? Details { get; protected set; } = [];
-        // сырые ошибки
-        public IEnumerable<string>? RawMessages { get; init; }
+        public IEnumerable<IdentityError>? Details { get; protected set; } = [];
     }
 }

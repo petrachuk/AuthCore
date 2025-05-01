@@ -1,14 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Localization;
+using Microsoft.AspNetCore.Identity;
 using AVP.AuthCore.Application.Common.Results;
 using AVP.AuthCore.Application.Common.Errors;
-using AVP.AuthCore.Application.Resources;
 
 namespace AVP.AuthCore.API.Extensions
 {
     public static class ResultExtensions
     {
-        public static IActionResult ToActionResult(this OperationResult result, ILogger logger, IStringLocalizer<ErrorMessages> localizer, HttpContext httpContext)
+        public static IActionResult ToActionResult(this OperationResult result, ILogger logger, HttpContext httpContext)
         {
             if (result.IsSuccess)
             {
@@ -18,10 +17,10 @@ namespace AVP.AuthCore.API.Extensions
             }
 
             logger.LogWarning("Request failed with errors: {Errors}", string.Join(" ", result.Details ?? []));
-            return BuildErrorResult(result.Error, result.Details, result.RawMessages, localizer, httpContext);
+            return BuildErrorResult(result.Error, result.Details, httpContext);
         }
 
-        public static IActionResult ToActionResult<T>(this OperationResult<T> result, ILogger logger, IStringLocalizer<ErrorMessages> localizer, HttpContext httpContext)
+        public static IActionResult ToActionResult<T>(this OperationResult<T> result, ILogger logger, HttpContext httpContext)
         {
             if (result.IsSuccess)
             {
@@ -39,32 +38,21 @@ namespace AVP.AuthCore.API.Extensions
                 return new OkObjectResult(result.Data);
             }
 
-            logger.LogWarning("Request failed with errors: {Errors}", string.Join(" ", result.Details ?? []));
-            return BuildErrorResult(result.Error, result.Details, result.RawMessages, localizer, httpContext);
+            logger.LogWarning("Request failed with errors: {Errors}", string.Join(" ", result.Details?.Select(e => e.Code) ?? []));
+            return BuildErrorResult(result.Error, result.Details, httpContext);
         }
 
-        private static IActionResult BuildErrorResult(ErrorCode? error, IEnumerable<ErrorCode>? details, IEnumerable<string>? rawMessages, IStringLocalizer<ErrorMessages> localizer, HttpContext httpContext)
+        private static IActionResult BuildErrorResult(ErrorCode? error, IEnumerable<IdentityError>? details, HttpContext httpContext)
         {
-            // локализация главной ошибки
-            var mainMessageKey = error.HasValue ? ErrorCatalog.GetMessageKey(error.Value) : "Unknown";
-            var localizedMainMessage = localizer[mainMessageKey].Value;
-
-            // локализация деталей
-            var localizedDetails = details?
-                .Where(code => code != ErrorCode.Unknown)
-                .Select(code => localizer[ErrorCatalog.GetMessageKey(code)].Value)
-                .ToList() ?? [];
-
-            // добавим сырые сообщения, если есть
-            if (localizedDetails.Count == 0 && rawMessages != null) localizedDetails.AddRange(rawMessages);
+            //var errorMessage = error.FirstOrDefault() ?? "An error occurred";
 
             var problemDetails = new ProblemDetails
             {
                 Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
-                Detail = localizedMainMessage,
+                // Detail = mainMessageKey,
                 Instance = httpContext.Request.Path,
                 Extensions = {
-                    ["errors"] = localizedDetails,
+                    ["errors"] = details,
                     ["traceId"] = httpContext.TraceIdentifier
                 }
             };

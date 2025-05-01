@@ -1,4 +1,5 @@
 ﻿using AVP.AuthCore.Application.Common.Errors;
+using Microsoft.AspNetCore.Identity;
 
 namespace AVP.AuthCore.Application.Common.Results
 {
@@ -16,20 +17,11 @@ namespace AVP.AuthCore.Application.Common.Results
             Error = errorCode
         };
 
-        public static OperationResult Fail(ErrorCode errorCode, IEnumerable<ErrorCode> details) => new()
+        public static OperationResult Fail(ErrorCode errorCode, IEnumerable<IdentityError> details) => new()
         {
             IsSuccess = false,
             Error = errorCode,
             Details = details
-        };
-
-        // Ошибка с сообщениями
-        public static OperationResult Fail(ErrorCode errorCode, IEnumerable<ErrorCode>? details, IEnumerable<string>? rawMessages) => new()
-        {
-            IsSuccess = false,
-            Error = errorCode,
-            Details = details,
-            RawMessages = rawMessages
         };
     }
 
@@ -52,20 +44,11 @@ namespace AVP.AuthCore.Application.Common.Results
         };
 
         // ошибка (только код)
-        public static OperationResult<T> Fail(ErrorCode errorCode, IEnumerable<ErrorCode> details) => new()
+        public static OperationResult<T> Fail(ErrorCode errorCode, IEnumerable<IdentityError> details) => new()
         {
             IsSuccess = false,
             Error = errorCode,
             Details = details
-        };
-
-        // ошибка с сообщениями
-        public static OperationResult<T> Fail(ErrorCode errorCode, IEnumerable<ErrorCode> details, IEnumerable<string> rawMessages) => new()
-        {
-            IsSuccess = false,
-            Error = errorCode,
-            Details = details,
-            RawMessages = rawMessages
         };
     }
 }

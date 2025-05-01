@@ -8,7 +8,6 @@ using AVP.AuthCore.Application.DTOs;
 using AVP.AuthCore.Persistence;
 using AVP.AuthCore.Persistence.Entities;
 using AVP.AuthCore.Application.Common.Results;
-using AVP.AuthCore.Application.Resources;
 using AVP.AuthCore.Application.Common.Settings;
 using Microsoft.Extensions.Options;
 
@@ -22,7 +21,7 @@ namespace AVP.AuthCore.Application.Services
         AuthDbContext context,
         IOptionsMonitor<IdentitySettings> identitySettingsMonitor,
         IOptionsMonitor<JwtSettings> jwtSettingsMonitor,
-        ILogger<ErrorMessages> logger) : IAuthService
+        ILogger<AuthService> logger) : IAuthService
     {
         public async Task<OperationResult<AuthResponse>> RegisterAsync(RegisterRequest request)
         {
@@ -35,14 +34,7 @@ namespace AVP.AuthCore.Application.Services
             {
                 logger.LogWarning("Registration failed for {Email} with errors: {Errors}", request.Email, result.Errors.Select(e => e.Description));
 
-                var details = result.Errors
-                    .Select(e => Enum.TryParse<ErrorCode>(e.Code, out var errorCode) ? errorCode : ErrorCode.Unknown);
-
-                var messages = result.Errors
-                    .Select(e => e.Description)
-                    .ToList();
-
-                return OperationResult<AuthResponse>.Fail(ErrorCode.RegistrationFailed, details, messages);
+                return OperationResult<AuthResponse>.Fail(ErrorCode.RegistrationFailed, result.Errors);
             }
 
             // Добавить роль по умолчанию

@@ -28,13 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Update="Resources\ErrorMessages.resx">
-      <Generator></Generator>
-      <CustomToolNamespace>AVP.AuthCore.Application.Resources</CustomToolNamespace>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\ErrorMessages.ru.resx">
-      <CustomToolNamespace>AVP.AuthCore.Application.Resources</CustomToolNamespace>
-    </EmbeddedResource>
+    <Folder Include="Resources\" />
   </ItemGroup>
 
 </Project>

@@ -1,12 +1,10 @@
-﻿using System.Text;
-using System.Globalization;
+﻿using System.Globalization;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
-using Microsoft.Extensions.Localization;
-using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Serilog;
@@ -229,27 +227,10 @@ namespace AVP.AuthCore.API
                     .AddSignInManager()
                     .AddDefaultTokenProviders();
 
-                // Локализация
-                builder.Services.AddSingleton<IStringLocalizerFactory, ResourceManagerStringLocalizerFactory>();
-                builder.Services.AddSingleton<IStringLocalizer>(provider =>
-                {
-                    var factory = provider.GetRequiredService<IStringLocalizerFactory>();
-                    return factory.Create("ErrorMessages", "AVP.AuthCore.Application");
-                });
-
                 // автоочистка RefreshToken 
                 builder.Services.AddHostedService<RefreshTokenCleanupService>();
 
                 var app = builder.Build();
-
-                // Локализация
-                var supportedCultures = new[] { new CultureInfo("en"), new CultureInfo("ru") };
-                app.UseRequestLocalization(new RequestLocalizationOptions
-                {
-                    DefaultRequestCulture = new RequestCulture("en"),
-                    SupportedCultures = supportedCultures,
-                    SupportedUICultures = supportedCultures
-                });
 
                 // Конфигурация pipeline
                 if (app.Environment.IsDevelopment())

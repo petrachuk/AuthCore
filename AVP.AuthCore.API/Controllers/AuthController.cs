@@ -1,11 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Localization;
 using AVP.AuthCore.API.Extensions;
 using AVP.AuthCore.Application.Interfaces;
 using AVP.AuthCore.Application.DTOs;
-using AVP.AuthCore.Application.Resources;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace AVP.AuthCore.API.Controllers
 {
@@ -14,7 +11,7 @@ namespace AVP.AuthCore.API.Controllers
     /// </summary>
     [ApiController]
     [Route("api/auth")]
-    public class AuthController(IAuthService authService, ILogger<AuthController> logger, IStringLocalizer<ErrorMessages> localizer) : ControllerBase
+    public class AuthController(IAuthService authService, ILogger<AuthController> logger) : ControllerBase
     {
         /// <summary>
         /// Registers a new user
@@ -29,7 +26,7 @@ namespace AVP.AuthCore.API.Controllers
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
             var result = await authService.RegisterAsync(request);
-            return result.ToActionResult(logger, localizer, HttpContext);
+            return result.ToActionResult(logger, HttpContext);
         }
 
         /// <summary>
@@ -46,7 +43,7 @@ namespace AVP.AuthCore.API.Controllers
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             var result = await authService.LoginAsync(request);
-            return result.ToActionResult(logger, localizer, HttpContext);
+            return result.ToActionResult(logger, HttpContext);
         }
 
         /// <summary>
@@ -63,7 +60,7 @@ namespace AVP.AuthCore.API.Controllers
         public async Task<IActionResult> Refresh([FromBody] RefreshRequest request)
         {
             var result = await authService.RefreshTokenAsync(request);
-            return result.ToActionResult(logger, localizer, HttpContext);
+            return result.ToActionResult(logger, HttpContext);
         }
 
         /// <summary>
@@ -80,7 +77,7 @@ namespace AVP.AuthCore.API.Controllers
         public async Task<IActionResult> Logout([FromBody] RefreshRequest request)
         {
             var result = await authService.RevokeRefreshTokenAsync(request.RefreshToken);
-            return result.ToActionResult(logger, localizer, HttpContext);
+            return result.ToActionResult(logger, HttpContext);
         }
     }
 }
