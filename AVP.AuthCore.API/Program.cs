@@ -19,6 +19,8 @@ using AVP.AuthCore.Persistence.Entities;
 using AVP.AuthCore.Infrastructure.Logging;
 using AVP.AuthCore.Application.Common.Settings;
 using AVP.AuthCore.Infrastructure.HostedServices;
+using FluentValidation.Resources;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AVP.AuthCore.API
 {
@@ -94,10 +96,8 @@ namespace AVP.AuthCore.API
                 builder.Services.AddLocalization(options => options.ResourcesPath = string.Empty);
 
                 // Настройка FluentValidation
-                ValidatorOptions.Global.LanguageManager = new FluentValidation.Resources.LanguageManager
-                {
-                    Culture = new CultureInfo("ru")
-                };
+                CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("en-US");
+                CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("en-US");
 
                 builder.Services
                     .AddFluentValidationAutoValidation()
@@ -106,6 +106,9 @@ namespace AVP.AuthCore.API
                     .AddValidatorsFromAssemblyContaining<LoginRequestValidator>()
                     .AddValidatorsFromAssemblyContaining<RefreshRequestValidator>()
                     .AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
+
+                Console.WriteLine($"Thread.CurrentUICulture: {Thread.CurrentThread.CurrentUICulture}");
+                //Console.WriteLine($"First error: {errors.FirstOrDefault().Value?.FirstOrDefault()}");
 
                 // Настройка модели ошибки в API
                 builder.Services.Configure<ApiBehaviorOptions>(options =>

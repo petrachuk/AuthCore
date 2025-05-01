@@ -25,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AVP.AuthCore.API\AVP.AuthCore.API.csproj" />
     <ProjectReference Include="..\AVP.AuthCore.Application\AVP.AuthCore.Application.csproj" />
   </ItemGroup>
 

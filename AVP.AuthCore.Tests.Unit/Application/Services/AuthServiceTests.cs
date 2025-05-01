@@ -112,10 +112,6 @@ namespace AVP.AuthCore.Tests.Unit.Application.Services
             // Assert
             Assert.False(result.IsSuccess);
             Assert.Equal(ErrorCode.RegistrationFailed, result.Error);
-            // Убедимся, что RawMessages не равен null перед вызовом Assert.Contains
-            // Assert.NotNull(result.RawMessages);
-            //Assert.Contains("User already exists.", result.RawMessages!);
-
         }
 
         /// <summary>
@@ -135,7 +131,7 @@ namespace AVP.AuthCore.Tests.Unit.Application.Services
                 .ReturnsAsync(SignInResult.Success);
 
             _userManagerMock.Setup(x => x.GetRolesAsync(user))
-                .ReturnsAsync([ "User" ]);
+                .ReturnsAsync(["User"]);
 
             _tokenServiceMock.Setup(x => x.GenerateAccessTokenAsync(user, It.IsAny<IEnumerable<string>>()))
                 .ReturnsAsync("access-token");
@@ -214,7 +210,7 @@ namespace AVP.AuthCore.Tests.Unit.Application.Services
                 .ReturnsAsync("new-refresh-token");
 
             _userManagerMock.Setup(x => x.GetRolesAsync(user))
-                .ReturnsAsync([ "User" ]);
+                .ReturnsAsync(["User"]);
 
             _tokenServiceMock.Setup(x => x.GenerateAccessTokenAsync(user, It.IsAny<IEnumerable<string>>()))
                 .ReturnsAsync("new-access-token");

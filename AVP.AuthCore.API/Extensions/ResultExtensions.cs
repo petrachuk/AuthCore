@@ -44,12 +44,10 @@ namespace AVP.AuthCore.API.Extensions
 
         private static IActionResult BuildErrorResult(ErrorCode? error, IEnumerable<IdentityError>? details, HttpContext httpContext)
         {
-            //var errorMessage = error.FirstOrDefault() ?? "An error occurred";
-
             var problemDetails = new ProblemDetails
             {
                 Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
-                // Detail = mainMessageKey,
+                Detail = details?.FirstOrDefault()?.Description,
                 Instance = httpContext.Request.Path,
                 Extensions = {
                     ["errors"] = details,
