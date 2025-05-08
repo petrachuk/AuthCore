@@ -34,7 +34,10 @@ namespace AVP.AuthCore.Application.Services
             {
                 logger.LogWarning("Registration failed for {Email} with errors: {Errors}", request.Email, result.Errors.Select(e => e.Description));
 
-                return OperationResult<AuthResponse>.Fail(ErrorCode.RegistrationFailed, result.Errors);
+                return OperationResult<AuthResponse>.Fail(
+                    result.Errors.FirstOrDefault()?.Code == "DuplicateUserName"
+                        ? ErrorCode.UserAlreadyExists
+                        : ErrorCode.RegistrationFailed, result.Errors);
             }
 
             // Добавить роль по умолчанию

@@ -52,10 +52,10 @@ namespace AVP.AuthCore.Tests.Unit.Application.Common.Results
         public void Fail_With_Details_Should_Return_Failed_Result_With_ErrorCode_And_Details()
         {
             // Arrange
-            var errorCode = ErrorCode.InvalidCredentials;
+            const ErrorCode errorCode = ErrorCode.InvalidCredentials;
             var details = new List<IdentityError>
             {
-                new IdentityError { Code = "PasswordTooShort", Description = "Password must be at least 6 characters long." }
+                new() { Code = "PasswordTooShort", Description = "Password must be at least 6 characters long." }
             };
 
             // Act
@@ -127,7 +127,7 @@ namespace AVP.AuthCore.Tests.Unit.Application.Common.Results
             var errorCode = ErrorCode.UserNotFound;
             var details = new List<IdentityError>
             {
-                new IdentityError { Code = "UserNotFound", Description = "The user does not exist." }
+                new() { Code = "UserNotFound", Description = "The user does not exist." }
             };
 
             // Act

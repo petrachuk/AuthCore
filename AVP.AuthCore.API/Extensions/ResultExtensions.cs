@@ -57,8 +57,10 @@ namespace AVP.AuthCore.API.Extensions
 
             return error switch
             {
-                ErrorCode.InvalidAccessToken or ErrorCode.RefreshTokenExpired => SetProblemResult(problemDetails, "Unauthorized", StatusCodes.Status401Unauthorized),
+                ErrorCode.InvalidAccessToken or ErrorCode.RefreshTokenExpired or ErrorCode.InvalidCredentials => SetProblemResult(problemDetails, "Unauthorized", StatusCodes.Status401Unauthorized),
                 ErrorCode.UserNotFound => SetProblemResult(problemDetails, "Not Found", StatusCodes.Status404NotFound),
+                ErrorCode.UserAlreadyExists => SetProblemResult(problemDetails, "UserAlreadyExists", StatusCodes.Status409Conflict),
+                ErrorCode.RefreshTokenNotFound => SetProblemResult(problemDetails, "RefreshTokenNotFound", StatusCodes.Status403Forbidden),
                 _ => SetProblemResult(problemDetails, "Bad Request", StatusCodes.Status400BadRequest)
             };
         }
@@ -72,6 +74,9 @@ namespace AVP.AuthCore.API.Extensions
             {
                 StatusCodes.Status401Unauthorized => new UnauthorizedObjectResult(problem),
                 StatusCodes.Status404NotFound => new NotFoundObjectResult(problem),
+                StatusCodes.Status409Conflict => new ConflictObjectResult(problem),
+                StatusCodes.Status403Forbidden => new ObjectResult(problem)
+                    { StatusCode = StatusCodes.Status403Forbidden },
                 _ => new BadRequestObjectResult(problem)
             };
         }

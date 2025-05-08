@@ -19,8 +19,6 @@ using AVP.AuthCore.Persistence.Entities;
 using AVP.AuthCore.Infrastructure.Logging;
 using AVP.AuthCore.Application.Common.Settings;
 using AVP.AuthCore.Infrastructure.HostedServices;
-using FluentValidation.Resources;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AVP.AuthCore.API
 {
@@ -213,8 +211,11 @@ namespace AVP.AuthCore.API
                 });
 
                 // Конфигурация базы данных
-                builder.Services.AddDbContext<AuthDbContext>(options =>
-                    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+                if (!builder.Environment.IsEnvironment("Test"))
+                {
+                    builder.Services.AddDbContext<AuthDbContext>(options =>
+                        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+                }
 
                 builder.Services.AddIdentityCore<ApplicationUser>(options =>
                     {

@@ -17,12 +17,12 @@ namespace AVP.AuthCore.API.Controllers
         /// Registers a new user
         /// </summary>
         /// <param name="request">The registration details</param>
-        /// <returns>The registration result</returns>
+        /// <response code="201">User was successfully registered</response>
+        /// <response code="409">A user with the provided credentials already exists</response>
         [AllowAnonymous]
         [HttpPost("register")]
         [ProducesResponseType(typeof(AuthResponse), 201)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(500)]
+        [ProducesResponseType(409)]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
             var result = await authService.RegisterAsync(request);
@@ -33,13 +33,12 @@ namespace AVP.AuthCore.API.Controllers
         /// Authenticates a user and issues tokens
         /// </summary>
         /// <param name="request">The login credentials</param>
-        /// <returns>The authentication result with tokens</returns>
+        /// <response code="200">User was successfully authenticated</response>
+        /// <response code="401">Invalid username or password</response>
         [AllowAnonymous]
         [HttpPost("login")]
         [ProducesResponseType(typeof(AuthResponse), 200)]
-        [ProducesResponseType(400)]
         [ProducesResponseType(401)]
-        [ProducesResponseType(500)]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             var result = await authService.LoginAsync(request);
@@ -50,13 +49,14 @@ namespace AVP.AuthCore.API.Controllers
         /// Refreshes the access token
         /// </summary>
         /// <param name="request">Current access and refresh tokens</param>
-        /// <returns>The new pair of tokens</returns>
+        /// <response code="200">Access token was successfully refreshed</response>
+        /// <response code="401">Invalid or expired access token</response>
+        /// <response code="403">No valid refresh token found or token has been revoked</response>
         [AllowAnonymous]
         [HttpPost("refresh")]
         [ProducesResponseType(typeof(AuthResponse), 200)]
-        [ProducesResponseType(400)]
         [ProducesResponseType(401)]
-        [ProducesResponseType(500)]
+        [ProducesResponseType(403)]
         public async Task<IActionResult> Refresh([FromBody] RefreshRequest request)
         {
             var result = await authService.RefreshTokenAsync(request);
@@ -67,13 +67,12 @@ namespace AVP.AuthCore.API.Controllers
         /// Revokes the refresh token and ends the session
         /// </summary>
         /// <param name="request">The refresh token to revoke</param>
-        /// <returns>The logout result</returns>
+        /// <response code="204">User successfully logged out. No content returned</response>
+        /// <response code="401">Invalid or expired access token</response>
         [Authorize]
         [HttpPost("logout")]
         [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
         [ProducesResponseType(401)]
-        [ProducesResponseType(500)]
         public async Task<IActionResult> Logout([FromBody] RefreshRequest request)
         {
             var result = await authService.RevokeRefreshTokenAsync(request.RefreshToken);

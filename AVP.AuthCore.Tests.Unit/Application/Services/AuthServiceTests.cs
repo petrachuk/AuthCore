@@ -111,7 +111,7 @@ namespace AVP.AuthCore.Tests.Unit.Application.Services
 
             // Assert
             Assert.False(result.IsSuccess);
-            Assert.Equal(ErrorCode.RegistrationFailed, result.Error);
+            Assert.Equal(ErrorCode.UserAlreadyExists, result.Error);
         }
 
         /// <summary>
