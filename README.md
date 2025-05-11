@@ -1,6 +1,6 @@
-# AVP.AuthCore
+# AuthCore
 
-**AVP.AuthCore** is a ready-to-use API solution for authentication and authorization using JWT tokens. The project is built with **C#**, **.NET 8.0**, and leverages **Entity Framework** and **ASP.NET Identity**.
+**AuthCore** is a ready-to-use API solution for authentication and authorization using JWT tokens. The project is built with **C#**, **.NET 8.0**, and leverages **Entity Framework** and **ASP.NET Identity**.
 
 ## Features
 
@@ -19,8 +19,8 @@
 
 1. **Clone the repository**:
     ```bash
-    git clone https://github.com/petrachuk/AVP.AuthCore.git
-    cd AVP.AuthCore
+    git clone https://github.com/petrachuk/AuthCore.git
+    cd AuthCore
     ```
 
 2. **Set up environment variables** (or configure `appsettings.json`):
@@ -35,7 +35,7 @@
 
 3. **Apply database migrations**:
     ```bash
-    dotnet ef database update --project AVP.AuthCore.Infrastructure
+    dotnet ef database update --project AuthCore.Infrastructure
     ```
 
 4. **Run the application**:
