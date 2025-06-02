@@ -35,7 +35,7 @@
 
 3. **Apply database migrations**:
     ```bash
-    dotnet ef database update --project AuthCore.Infrastructure
+    dotnet ef database update --project AuthCore.Persistence
     ```
 
 4. **Run the application**:
