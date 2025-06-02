@@ -1,17 +1,17 @@
-﻿using System.Security.Claims;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Http;
-using Moq;
+﻿using AuthCore.Abstractions.Interfaces;
 using AuthCore.Application.Common.Errors;
 using AuthCore.Application.Common.Settings;
 using AuthCore.Application.DTOs;
 using AuthCore.Application.Interfaces;
 using AuthCore.Application.Services;
 using AuthCore.Persistence.Entities;
-using AuthCore.Persistence;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Moq;
+using System.Security.Claims;
+using AuthCore.Abstractions.Models;
 
 namespace AuthCore.Tests.Unit.Application.Services
 {
@@ -23,7 +23,7 @@ namespace AuthCore.Tests.Unit.Application.Services
         private readonly Mock<ITokenService> _tokenServiceMock;
         private readonly Mock<IOptionsMonitor<IdentitySettings>> _identitySettingsMock;
         private readonly Mock<IOptionsMonitor<JwtSettings>> _jwtSettingsMock;
-        private readonly AuthDbContext _dbContext;
+        private readonly Mock<IRefreshTokenStore> _refreshTokenStoreMock;
         private readonly AuthService _authService;
 
         public AuthServiceTests()
@@ -34,19 +34,15 @@ namespace AuthCore.Tests.Unit.Application.Services
             _tokenServiceMock = new Mock<ITokenService>();
             _identitySettingsMock = new Mock<IOptionsMonitor<IdentitySettings>>();
             _jwtSettingsMock = new Mock<IOptionsMonitor<JwtSettings>>();
+            _refreshTokenStoreMock = new Mock<IRefreshTokenStore>();
             Mock<ILogger<AuthService>> loggerMock = new();
-
-            var options = new DbContextOptionsBuilder<AuthDbContext>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                .Options;
-            _dbContext = new AuthDbContext(options);
 
             _authService = new AuthService(
                 _userManagerMock.Object,
                 _roleManagerMock.Object,
                 _signInManagerMock.Object,
                 _tokenServiceMock.Object,
-                _dbContext,
+                _refreshTokenStoreMock.Object,
                 _identitySettingsMock.Object,
                 _jwtSettingsMock.Object,
                 loggerMock.Object
@@ -139,6 +135,9 @@ namespace AuthCore.Tests.Unit.Application.Services
             _tokenServiceMock.Setup(x => x.GenerateRefreshTokenAsync())
                 .ReturnsAsync("refresh-token");
 
+            _jwtSettingsMock.Setup(x => x.CurrentValue)
+                .Returns(new JwtSettings { RefreshTokenLifetimeDays = 7 });
+
             // Act
             var result = await _authService.LoginAsync(request);
 
@@ -198,14 +197,14 @@ namespace AuthCore.Tests.Unit.Application.Services
             _userManagerMock.Setup(x => x.FindByIdAsync(user.Id))
                 .ReturnsAsync(user);
 
-            _dbContext.RefreshTokens.Add(new RefreshToken
-            {
-                Token = request.RefreshToken,
-                UserId = user.Id,
-                Expires = DateTime.UtcNow.AddMinutes(5)
-            });
-            await _dbContext.SaveChangesAsync();
-
+            _refreshTokenStoreMock.Setup(x => x.GetRefreshTokenAsync(request.RefreshToken))
+                .ReturnsAsync(new RefreshTokenInfo
+                {
+                    Token = request.RefreshToken,
+                    UserId = user.Id,
+                    Expires = DateTime.UtcNow.AddMinutes(5)
+                });
+            
             _tokenServiceMock.Setup(x => x.GenerateRefreshTokenAsync())
                 .ReturnsAsync("new-refresh-token");
 
@@ -316,13 +315,13 @@ namespace AuthCore.Tests.Unit.Application.Services
             _userManagerMock.Setup(x => x.FindByIdAsync(user.Id))
                 .ReturnsAsync(user);
 
-            _dbContext.RefreshTokens.Add(new RefreshToken
-            {
-                Token = request.RefreshToken,
-                UserId = user.Id,
-                Expires = DateTime.UtcNow.AddMinutes(-5) // просроченный токен
-            });
-            await _dbContext.SaveChangesAsync();
+            _refreshTokenStoreMock.Setup(x => x.GetRefreshTokenAsync(request.RefreshToken))
+                .ReturnsAsync(new RefreshTokenInfo
+                {
+                    Token = request.RefreshToken,
+                    UserId = user.Id,
+                    Expires = DateTime.UtcNow.AddMinutes(-5) // просроченный токен
+                });
 
             // Act
             var result = await _authService.RefreshTokenAsync(request);
@@ -348,13 +347,14 @@ namespace AuthCore.Tests.Unit.Application.Services
             _userManagerMock.Setup(x => x.FindByIdAsync(user.Id))
                 .ReturnsAsync(user);
 
-            _dbContext.RefreshTokens.Add(new RefreshToken
-            {
-                Token = request.RefreshToken,
-                UserId = "anotherUserId", // чужой токен
-                Expires = DateTime.UtcNow.AddDays(1) // гарантированно живой токен
-            });
-            await _dbContext.SaveChangesAsync();
+
+            _refreshTokenStoreMock.Setup(x => x.GetRefreshTokenAsync(request.RefreshToken))
+                .ReturnsAsync(new RefreshTokenInfo
+                {
+                    Token = request.RefreshToken,
+                    UserId = "anotherUserId", // чужой токен
+                    Expires = DateTime.UtcNow.AddDays(1) // гарантированно живой токен
+                });
 
             // Act
             var result = await _authService.RefreshTokenAsync(request);

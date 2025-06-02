@@ -1,24 +1,26 @@
-﻿using System.Globalization;
-using System.Text;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.Identity;
+﻿using System.Text;
+using System.Globalization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Serilog;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Serilog;
+using AuthCore.Abstractions.Interfaces;
+using AuthCore.Application.Common.Settings;
 using AuthCore.Application.DTOs;
 using AuthCore.Application.Interfaces;
 using AuthCore.Application.Services;
 using AuthCore.Application.Validation;
+using AuthCore.Infrastructure.HostedServices;
+using AuthCore.Infrastructure.Logging;
 using AuthCore.Persistence;
 using AuthCore.Persistence.Entities;
-using AuthCore.Infrastructure.Logging;
-using AuthCore.Application.Common.Settings;
-using AuthCore.Infrastructure.HostedServices;
+using AuthCore.Persistence.Stores;
 
 namespace AuthCore.API
 {
@@ -105,8 +107,8 @@ namespace AuthCore.API
                     .AddValidatorsFromAssemblyContaining<RefreshRequestValidator>()
                     .AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
 
-                Console.WriteLine($"Thread.CurrentUICulture: {Thread.CurrentThread.CurrentUICulture}");
-                //Console.WriteLine($"First error: {errors.FirstOrDefault().Value?.FirstOrDefault()}");
+                // Console.WriteLine($"Thread.CurrentUICulture: {Thread.CurrentThread.CurrentUICulture}");
+                // Console.WriteLine($"First error: {errors.FirstOrDefault().Value?.FirstOrDefault()}");
 
                 // Настройка модели ошибки в API
                 builder.Services.Configure<ApiBehaviorOptions>(options =>
@@ -230,6 +232,8 @@ namespace AuthCore.API
                     .AddEntityFrameworkStores<AuthDbContext>()
                     .AddSignInManager()
                     .AddDefaultTokenProviders();
+
+                builder.Services.AddScoped<IRefreshTokenStore, DbRefreshTokenStore>();
 
                 // автоочистка RefreshToken 
                 builder.Services.AddHostedService<RefreshTokenCleanupService>();

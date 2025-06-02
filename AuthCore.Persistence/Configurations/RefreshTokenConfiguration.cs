@@ -16,22 +16,13 @@ namespace AuthCore.Persistence.Configurations
                 .IsRequired()
                 .HasMaxLength(88);
 
-            builder.Property(rt => rt.Revoked)
-                .IsRequired()
-                .HasDefaultValue(false);
-
             builder.Property(rt => rt.Expires)
                 .IsRequired();
-
-            builder.Property(rt => rt.ReplacedByToken)
-                .HasMaxLength(88);
 
             builder.HasIndex(rt => rt.Token)
                 .IsUnique();
 
             builder.HasIndex(rt => rt.Expires);
-
-            builder.HasIndex(rt => rt.Revoked);
 
             builder.Property(rt => rt.UserId)
                 .IsRequired()
