@@ -25,7 +25,7 @@ namespace AuthCore.Infrastructure.HostedServices
 
                 var now = DateTime.UtcNow;
                 var expiredTokens = await db.RefreshTokens
-                    .Where(t => t.Expires < now || t.Revoked)
+                    .Where(t => t.Expires < now)
                     .ToListAsync(stoppingToken);
 
                 if (expiredTokens.Count == 0) continue;

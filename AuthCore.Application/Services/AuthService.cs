@@ -1,15 +1,15 @@
 ﻿using System.Security.Claims;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using AuthCore.Application.Common.Errors;
-using AuthCore.Application.Interfaces;
-using AuthCore.Application.DTOs;
-using AuthCore.Persistence;
-using AuthCore.Persistence.Entities;
 using AuthCore.Application.Common.Results;
 using AuthCore.Application.Common.Settings;
-using Microsoft.Extensions.Options;
+using AuthCore.Application.DTOs;
+using AuthCore.Application.Interfaces;
+using AuthCore.Persistence.Entities;
+using AuthCore.Abstractions.Interfaces;
+using AuthCore.Abstractions.Models;
 
 namespace AuthCore.Application.Services
 {
@@ -18,7 +18,7 @@ namespace AuthCore.Application.Services
         RoleManager<IdentityRole> roleManager,
         SignInManager<ApplicationUser> signInManager,
         ITokenService tokenService,
-        AuthDbContext context,
+        IRefreshTokenStore refreshTokenStore,
         IOptionsMonitor<IdentitySettings> identitySettingsMonitor,
         IOptionsMonitor<JwtSettings> jwtSettingsMonitor,
         ILogger<AuthService> logger) : IAuthService
@@ -54,14 +54,8 @@ namespace AuthCore.Application.Services
             var refreshToken = await tokenService.GenerateRefreshTokenAsync();
             var expires = DateTime.UtcNow.AddDays(jwtSettingsMonitor.CurrentValue.RefreshTokenLifetimeDays);
 
-            context.RefreshTokens.Add(new RefreshToken
-            {
-                Token = refreshToken,
-                Expires = expires,
-                UserId = user.Id
-            });
-
-            await context.SaveChangesAsync();
+            await refreshTokenStore.SaveRefreshTokenAsync(new RefreshTokenInfo
+                { UserId = user.Id, Token = refreshToken, Expires = expires });
 
             logger.LogInformation("User {Email} registered successfully", request.Email);
             return OperationResult<AuthResponse>.Ok(new AuthResponse(accessToken, refreshToken, expires), isCreated: true);
@@ -89,16 +83,10 @@ namespace AuthCore.Application.Services
 
             var accessToken = await tokenService.GenerateAccessTokenAsync(user, roles);
             var refreshToken = await tokenService.GenerateRefreshTokenAsync();
-            var expires = DateTime.UtcNow.AddDays(7);
+            var expires = DateTime.UtcNow.AddDays(jwtSettingsMonitor.CurrentValue.RefreshTokenLifetimeDays);
 
-            context.RefreshTokens.Add(new RefreshToken
-            {
-                Token = refreshToken,
-                Expires = expires,
-                UserId = user.Id
-            });
-
-            await context.SaveChangesAsync();
+            await refreshTokenStore.SaveRefreshTokenAsync(new RefreshTokenInfo
+                { UserId = user.Id, Token = refreshToken, Expires = expires });
 
             logger.LogInformation("User {Email} logged in successfully", request.Email);
             return OperationResult<AuthResponse>.Ok(new AuthResponse(accessToken, refreshToken, expires));
@@ -123,39 +111,31 @@ namespace AuthCore.Application.Services
                 return OperationResult<AuthResponse>.Fail(ErrorCode.UserNotFound);
             }
 
-            var storedToken = await context.RefreshTokens
-                .FirstOrDefaultAsync(x => x.Token == request.RefreshToken && !x.Revoked);
+            var storedRefreshToken = await refreshTokenStore.GetRefreshTokenAsync(request.RefreshToken);
 
-            switch (storedToken)
+            switch (storedRefreshToken)
             {
                 case null:
                     logger.LogWarning("Refresh failed: Refresh token not found for user {Email}", user.Email);
                     return OperationResult<AuthResponse>.Fail(ErrorCode.RefreshTokenNotFound);
 
-                case { UserId: not null, Expires: var expiry } when expiry < DateTime.UtcNow:
+                case { Expires: var expiry } when expiry < DateTime.UtcNow:
                     logger.LogWarning("Refresh failed: Expired refresh token for user {Email}", user.Email);
                     return OperationResult<AuthResponse>.Fail(ErrorCode.RefreshTokenExpired);
 
-                case { UserId: not null, UserId: var tokenUserId } when tokenUserId != user.Id:
+                case { UserId: var tokenUserId } when tokenUserId != user.Id:
                     logger.LogWarning("Refresh failed: Refresh token belongs to another user {Email}", user.Email);
                     return OperationResult<AuthResponse>.Fail(ErrorCode.RefreshTokenInvalid);
             }
 
             logger.LogInformation("Refreshing tokens for user {Email}", user.Email);
 
-            storedToken.Revoked = true;
             var newRefreshToken = await tokenService.GenerateRefreshTokenAsync();
             var expires = DateTime.UtcNow.AddDays(7);
 
-            context.RefreshTokens.Add(new RefreshToken
-            {
-                Token = newRefreshToken,
-                Expires = expires,
-                UserId = user.Id,
-                ReplacedByToken = storedToken.Token
-            });
-
-            await context.SaveChangesAsync();
+            await refreshTokenStore.SaveRefreshTokenAsync(new RefreshTokenInfo
+                { UserId = user.Id, Token = newRefreshToken, Expires = expires });
+            await refreshTokenStore.DeleteRefreshTokenAsync(storedRefreshToken.Token);
 
             var roles = await userManager.GetRolesAsync(user);
             var newAccessToken = await tokenService.GenerateAccessTokenAsync(user, roles);
@@ -168,23 +148,15 @@ namespace AuthCore.Application.Services
         {
             logger.LogInformation("Revocation requested for refresh token: {Token}", refreshToken);
 
-            var token = await context.RefreshTokens
-                .FirstOrDefaultAsync(x => x.Token == refreshToken);
+            var storedRefreshToken = await refreshTokenStore.GetRefreshTokenAsync(refreshToken);
 
-            if (token is null)
+            if (storedRefreshToken is null)
             {
                 logger.LogWarning("Revocation failed: Refresh token not found");
                 return OperationResult.Fail(ErrorCode.RefreshTokenNotFound);
             }
 
-            if (token.Revoked)
-            {
-                logger.LogWarning("Revocation failed: Refresh token already revoked");
-                return OperationResult.Fail(ErrorCode.RefreshTokenAlreadyRevoked);
-            }
-
-            token.Revoked = true;
-            await context.SaveChangesAsync();
+            await refreshTokenStore.DeleteRefreshTokenAsync(storedRefreshToken.Token);
 
             logger.LogInformation("Refresh token {Token} revoked successfully", refreshToken);
             return OperationResult.Ok();
