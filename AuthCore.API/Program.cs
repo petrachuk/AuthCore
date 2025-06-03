@@ -233,10 +233,20 @@ namespace AuthCore.API
                     .AddSignInManager()
                     .AddDefaultTokenProviders();
 
-                builder.Services.AddScoped<IRefreshTokenStore, DbRefreshTokenStore>();
-
-                // автоочистка RefreshToken 
-                builder.Services.AddHostedService<RefreshTokenCleanupService>();
+                var redisConnectionString = builder.Configuration.GetSection("Redis:ConnectionString").Value;
+                if (string.IsNullOrWhiteSpace(redisConnectionString))
+                {
+                    builder.Services.AddScoped<IRefreshTokenStore, DbRefreshTokenStore>();
+                    builder.Services.AddHostedService<RefreshTokenCleanupService>();
+                }
+                else
+                {
+                    builder.Services.AddStackExchangeRedisCache(options =>
+                    {
+                        options.Configuration = redisConnectionString;
+                    });
+                    builder.Services.AddScoped<IRefreshTokenStore, RedisRefreshTokenStore>();
+                }
 
                 var app = builder.Build();
 
