@@ -25,7 +25,7 @@ jobs:
       run: dotnet restore
 
     - name: Build project
-      run: dotnet build --configuration Release
+      run: dotnet build --configuration Release --no-restore
 
     - name: Run tests
       run: dotnet test AuthCore.Tests.Unit
