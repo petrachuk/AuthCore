@@ -14,6 +14,8 @@ namespace AuthCore.Tests.Integration.Fixtures
 
         public CustomWebApplicationFactory()
         {
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Test");
+
             _connection = new SqliteConnection("DataSource=:memory:");
 
             // Инициализация базы данных при создании фабрики

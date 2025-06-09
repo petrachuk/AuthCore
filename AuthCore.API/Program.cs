@@ -1,5 +1,5 @@
-﻿using System.Text;
-using System.Globalization;
+﻿using System.Globalization;
+using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -7,9 +7,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
 using FluentValidation;
 using FluentValidation.AspNetCore;
-using Serilog;
 using AuthCore.Abstractions.Interfaces;
 using AuthCore.Application.Common.Settings;
 using AuthCore.Application.DTOs;
@@ -28,23 +28,34 @@ namespace AuthCore.API
     {
         public static void Main(string[] args)
         {
+            // Получаем имя окружения
+            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+
+            // Собираем конфигурацию один раз
+            var configurationBuilder = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
+                .AddEnvironmentVariables();
+
+            var configuration = configurationBuilder.Build();
+
             // Инициализация логирования до запуска приложения
             Log.Logger = new LoggerConfiguration()
-                .ReadFrom.Configuration(new ConfigurationBuilder()
-                    .AddJsonFile("appsettings.json")
-                    .Build())
+                .ReadFrom.Configuration(configuration)
                 .Enrich.FromLogContext()
                 .CreateLogger();
 
             try
             {
                 Log.Information("Starting up the app...");
-                var builder = WebApplication.CreateBuilder(args);
+                var builder = WebApplication.CreateBuilder(new WebApplicationOptions { Args = args, EnvironmentName = environment });
 
-                // Перезагрузка данных при изменении файла настроек
-                builder.Configuration
-                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                    .AddEnvironmentVariables();
+                // Очищаем и копируем источники из уже собранного builder
+                builder.Configuration.Sources.Clear();
+                foreach (var source in configurationBuilder.Sources)
+                {
+                    builder.Configuration.Sources.Add(source);
+                }
 
                 builder.Host.UseSerilog(); // Подключение Serilog
 
@@ -234,7 +245,8 @@ namespace AuthCore.API
                     .AddDefaultTokenProviders();
 
                 var redisConnectionString = builder.Configuration.GetSection("Redis:ConnectionString").Value;
-                if (string.IsNullOrWhiteSpace(redisConnectionString))
+                
+                if (string.IsNullOrWhiteSpace(redisConnectionString) || builder.Environment.IsEnvironment("Test"))
                 {
                     builder.Services.AddScoped<IRefreshTokenStore, DbRefreshTokenStore>();
                     builder.Services.AddHostedService<RefreshTokenCleanupService>();
