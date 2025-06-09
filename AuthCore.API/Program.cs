@@ -18,6 +18,7 @@ using AuthCore.Application.Services;
 using AuthCore.Application.Validation;
 using AuthCore.Infrastructure.HostedServices;
 using AuthCore.Infrastructure.Logging;
+using AuthCore.Infrastructure.Notifications.Extensions;
 using AuthCore.Persistence;
 using AuthCore.Persistence.Entities;
 using AuthCore.Persistence.Stores;
@@ -72,13 +73,24 @@ namespace AuthCore.API
                     .ValidateDataAnnotations()
                     .ValidateOnStart();
 
+                builder.Services
+                    .AddOptions<EmailSettings>()
+                    .Bind(builder.Configuration.GetSection("EmailSettings"))
+                    .ValidateDataAnnotations()
+                    .ValidateOnStart();
+
+
                 // Регистрируем настройки как сервисы
                 builder.Services.AddScoped<JwtSettings>(sp => sp.GetRequiredService<IOptions<JwtSettings>>().Value);
                 builder.Services.AddScoped<IdentitySettings>(sp => sp.GetRequiredService<IOptions<IdentitySettings>>().Value);
+                builder.Services.AddScoped<EmailSettings>(sp => sp.GetRequiredService<IOptions<EmailSettings>>().Value);
 
                 // Регистрируем сервисы
                 builder.Services.AddScoped<IAuthService, AuthService>();
                 builder.Services.AddScoped<ITokenService, TokenService>();
+
+                // Отправка уведомлений
+                builder.Services.AddNotificationSenders(configuration);
 
                 // Настройка авторизации и аутентификации
                 builder.Services.AddAuthentication(options =>
