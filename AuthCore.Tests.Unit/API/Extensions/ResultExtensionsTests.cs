@@ -36,9 +36,9 @@ namespace AuthCore.Tests.Unit.API.Extensions
                 x => x.Log(
                     LogLevel.Information,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Request succeeded")),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Request succeeded")),
                     It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception, string>>()
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()
                 ),
                 Times.Once
             );
@@ -60,7 +60,7 @@ namespace AuthCore.Tests.Unit.API.Extensions
                 x => x.Log(
                     LogLevel.Information,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Request succeeded")),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Request succeeded")),
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception?, string>>()
                 ),
@@ -136,7 +136,7 @@ namespace AuthCore.Tests.Unit.API.Extensions
                 x => x.Log(
                     LogLevel.Information,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Request succeeded with data: TestData")),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Request succeeded with data: TestData")),
                     null,
                     It.IsAny<Func<It.IsAnyType, Exception?, string>>()
                 ),
