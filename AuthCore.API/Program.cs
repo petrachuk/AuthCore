@@ -11,7 +11,7 @@ using Serilog;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using AuthCore.Abstractions.Interfaces;
-using AuthCore.Application.Common.Settings;
+using AuthCore.Abstractions.Settings;
 using AuthCore.Application.DTOs;
 using AuthCore.Application.Interfaces;
 using AuthCore.Application.Services;
@@ -88,9 +88,10 @@ namespace AuthCore.API
                 // Регистрируем сервисы
                 builder.Services.AddScoped<IAuthService, AuthService>();
                 builder.Services.AddScoped<ITokenService, TokenService>();
+                builder.Services.AddScoped<IAccountService, AccountService>();
 
                 // Отправка уведомлений
-                builder.Services.AddNotificationSenders(configuration);
+                builder.Services.AddNotificationSenders();
 
                 // Настройка авторизации и аутентификации
                 builder.Services.AddAuthentication(options =>

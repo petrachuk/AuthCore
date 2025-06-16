@@ -30,6 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AuthCore.Abstractions\AuthCore.Abstractions.csproj" />
     <ProjectReference Include="..\AuthCore.Persistence\AuthCore.Persistence.csproj" />
   </ItemGroup>
 

@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using AuthCore.Application.Common.Errors;
 using AuthCore.Application.Common.Results;
-using AuthCore.Application.Common.Settings;
+using AuthCore.Abstractions.Settings;
 using AuthCore.Application.DTOs;
 using AuthCore.Application.Interfaces;
 using AuthCore.Persistence.Entities;

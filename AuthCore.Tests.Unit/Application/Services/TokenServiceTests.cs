@@ -3,7 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using AuthCore.Application.Services;
-using AuthCore.Application.Common.Settings;
+using AuthCore.Abstractions.Settings;
 using System.Text;
 
 namespace AuthCore.Tests.Unit.Application.Services

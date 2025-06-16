@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using AuthCore.Application.Common.Settings;
-using AuthCore.Infrastructure.Notifications.Models;
+using AuthCore.Abstractions.Settings;
+using AuthCore.Abstractions.Models;
 using AuthCore.Infrastructure.Notifications.Senders;
 
 namespace AuthCore.Tests.Unit.Infrastructure.Notifications.Senders

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using AuthCore.Application.Interfaces;
 using System.Security.Cryptography;
-using AuthCore.Application.Common.Settings;
+using AuthCore.Abstractions.Settings;
 
 namespace AuthCore.Application.Services
 {

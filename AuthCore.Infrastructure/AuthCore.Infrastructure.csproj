@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AuthCore.Application\AuthCore.Application.csproj" />
+    <ProjectReference Include="..\AuthCore.Abstractions\AuthCore.Abstractions.csproj" />
     <ProjectReference Include="..\AuthCore.Persistence\AuthCore.Persistence.csproj" />
   </ItemGroup>
 

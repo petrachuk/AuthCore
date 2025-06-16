@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace AuthCore.Application.Common.Settings
+namespace AuthCore.Abstractions.Settings
 {
     public class EmailSettings
     {
