@@ -1,10 +1,10 @@
 ﻿using System.Net;
 using System.Net.Mail;
+using AuthCore.Abstractions.Interfaces;
+using AuthCore.Abstractions.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using AuthCore.Application.Common.Settings;
-using AuthCore.Infrastructure.Notifications.Interfaces;
-using AuthCore.Infrastructure.Notifications.Models;
+using AuthCore.Abstractions.Settings;
 
 namespace AuthCore.Infrastructure.Notifications.Senders
 {
@@ -14,11 +14,9 @@ namespace AuthCore.Infrastructure.Notifications.Senders
         {
             var settings = emailSettingsMonitor.CurrentValue;
 
-            using var smtp = new SmtpClient(settings.Host, settings.Port)
-            {
-                Credentials = new NetworkCredential(settings.Username, settings.Password),
-                EnableSsl = settings.UseSsl
-            };
+            using var smtp = new SmtpClient(settings.Host, settings.Port);
+            smtp.Credentials = new NetworkCredential(settings.Username, settings.Password);
+            smtp.EnableSsl = settings.UseSsl;
 
             var mail = new MailMessage(settings.From, message.Recipient, message.Subject, message.Body)
             {

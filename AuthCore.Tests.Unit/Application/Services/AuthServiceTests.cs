@@ -1,6 +1,6 @@
 ﻿using AuthCore.Abstractions.Interfaces;
 using AuthCore.Application.Common.Errors;
-using AuthCore.Application.Common.Settings;
+using AuthCore.Abstractions.Settings;
 using AuthCore.Application.DTOs;
 using AuthCore.Application.Interfaces;
 using AuthCore.Application.Services;
@@ -228,17 +228,19 @@ namespace AuthCore.Tests.Unit.Application.Services
         private static Mock<UserManager<ApplicationUser>> MockUserManager()
         {
             var store = new Mock<IUserStore<ApplicationUser>>();
+            var options = new Mock<IOptions<IdentityOptions>>();
+            var passwordHasher = new Mock<IPasswordHasher<ApplicationUser>>();
+            var userValidators = new List<IUserValidator<ApplicationUser>>();
+            var passwordValidators = new List<IPasswordValidator<ApplicationUser>>();
+            var keyNormalizer = new Mock<ILookupNormalizer>();
+            var errors = new Mock<IdentityErrorDescriber>();
+            var services = new Mock<IServiceProvider>();
+            var logger = new Mock<ILogger<UserManager<ApplicationUser>>>();
+
             return new Mock<UserManager<ApplicationUser>>(
-                store.Object,
-                new Mock<IOptions<IdentityOptions>>().Object,
-                new Mock<IPasswordHasher<ApplicationUser>>().Object,
-                Array.Empty<IUserValidator<ApplicationUser>>(),
-                Array.Empty<IPasswordValidator<ApplicationUser>>(),
-                new Mock<ILookupNormalizer>().Object,
-                new Mock<IdentityErrorDescriber>().Object,
-                new Mock<IServiceProvider>().Object,
-                new Mock<ILogger<UserManager<ApplicationUser>>>().Object
-            );
+                store.Object, options.Object, passwordHasher.Object,
+                userValidators, passwordValidators, keyNormalizer.Object,
+                errors.Object, services.Object, logger.Object);
         }
 
         private static Mock<RoleManager<IdentityRole>> MockRoleManager()

@@ -1,6 +1,6 @@
-﻿using AuthCore.Infrastructure.Notifications.Models;
+﻿using AuthCore.Abstractions.Models;
 
-namespace AuthCore.Infrastructure.Notifications.Interfaces
+namespace AuthCore.Abstractions.Interfaces
 {
     public interface INotificationSender
     {

@@ -1,4 +1,4 @@
-﻿namespace AuthCore.Infrastructure.Notifications.Models
+﻿namespace AuthCore.Abstractions.Models
 {
     public class NotificationMessage
     {
