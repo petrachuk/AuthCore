@@ -276,13 +276,11 @@ namespace AuthCore.API
                 var app = builder.Build();
 
                 // Конфигурация pipeline
-                if (app.Environment.IsDevelopment())
+                if (app.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Staging"))
                 {
                     app.UseSwagger();
                     app.UseSwaggerUI();
                 }
-
-                app.UseHttpsRedirection();
 
                 // Middleware для логирования ошибок
                 app.UseMiddleware<ExceptionLoggingMiddleware>();

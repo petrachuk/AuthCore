@@ -29,7 +29,7 @@ jobs:
       - name: Publish
         run: dotnet publish AuthCore.API/AuthCore.API.csproj -c Release --no-restore -o ./publish
 
-      - name: Copy files to server via SCP
+      - name: Copy files to /home/deploy/authcore/ via SCP
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -40,7 +40,18 @@ jobs:
           target: "/home/deploy/authcore/"
           strip_components: 1
 
-      - name: Restart service via SSH
+      - name: Copy files to /home/deploy/authcore-dev/ via SCP
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          source: "publish/"
+          target: "/home/deploy/authcore-dev/"
+          strip_components: 1
+
+      - name: Restart services via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -49,3 +60,19 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             sudo systemctl restart authcore.service
+            sudo systemctl restart authcore-dev.service
+
+      - name: Restart services and run migrations via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd /home/deploy/authcore/
+            dotnet ef database update --project AuthCore.Persistence --no-build --configuration Release
+            sudo systemctl restart authcore.service
+            cd /home/deploy/authcore-dev/
+            dotnet ef database update --project AuthCore.Persistence --no-build --configuration Release
+            sudo systemctl restart authcore-dev.service
