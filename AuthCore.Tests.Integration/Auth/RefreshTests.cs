@@ -18,7 +18,8 @@ namespace AuthCore.Tests.Integration.Auth
             // Arrange
             var registerRequest = new RegisterRequest
             {
-                Email = "newuser@example.com",
+                IdentityType = IdentityType.Email,
+                Identifier = "newuser@example.com",
                 Password = "ValidPassword123!"
             };
 
@@ -49,14 +50,16 @@ namespace AuthCore.Tests.Integration.Auth
             // Arrange
             var loginRequest = new LoginRequest
             {
-                Email = "testuser@example.com",
+                IdentityType = IdentityType.Email,
+                Identifier = "testuser@example.com",
                 Password = "ValidPassword123!"
             };
 
             // Предварительная регистрация пользователя
             await _client.PostAsJsonAsync("/api/auth/register", new RegisterRequest
             {
-                Email = loginRequest.Email,
+                IdentityType = IdentityType.Email,
+                Identifier = loginRequest.Identifier,
                 Password = loginRequest.Password
             });
 
@@ -88,7 +91,8 @@ namespace AuthCore.Tests.Integration.Auth
 
             var registerRequest = new RegisterRequest
             {
-                Email = "olduser@example.com",
+                IdentityType = IdentityType.Email,
+                Identifier = "olduser@example.com",
                 Password = "ValidPassword123!"
             };
 

@@ -21,7 +21,8 @@ namespace AuthCore.Tests.Integration.Auth
             // Arrange
             var registerRequest = new RegisterRequest
             {
-                Email = "newuser@example.com",
+                IdentityType = IdentityType.Email,
+                Identifier = "newuser@example.com",
                 Password = "StrongPassword123!"
             };
 
@@ -42,7 +43,8 @@ namespace AuthCore.Tests.Integration.Auth
             // Arrange
             var registerRequest = new RegisterRequest
             {
-                Email = "", // Invalid email
+                IdentityType = IdentityType.Email,
+                Identifier = "", // Invalid email
                 Password = "" // Invalid password
             };
 
@@ -59,7 +61,8 @@ namespace AuthCore.Tests.Integration.Auth
             // Arrange
             var registerRequest = new RegisterRequest
             {
-                Email = "existinguser@example.com",
+                IdentityType = IdentityType.Email,
+                Identifier = "existinguser@example.com",
                 Password = "StrongPassword123!"
             };
 
@@ -68,7 +71,7 @@ namespace AuthCore.Tests.Integration.Auth
             {
                 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-                var user = new ApplicationUser { UserName = registerRequest.Email, Email = registerRequest.Email };
+                var user = new ApplicationUser { UserName = registerRequest.Identifier, Email = registerRequest.Identifier };
                 await userManager.CreateAsync(user, registerRequest.Password);
             }
 

@@ -22,7 +22,8 @@ namespace AuthCore.Tests.Integration.Auth
             // Arrange
             var registerRequest = new RegisterRequest
             {
-                Email = "logoutuser@example.com",
+                IdentityType = IdentityType.Email,
+                Identifier = "logoutuser@example.com",
                 Password = "SecurePassword123!"
             };
 
@@ -50,7 +51,8 @@ namespace AuthCore.Tests.Integration.Auth
             // Arrange
             var registerRequest = new RegisterRequest
             {
-                Email = "invalidlogout@example.com",
+                IdentityType = IdentityType.Email,
+                Identifier = "invalidlogout@example.com",
                 Password = "StrongPass!456"
             };
 

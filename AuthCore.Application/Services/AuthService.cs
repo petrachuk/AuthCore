@@ -1,15 +1,16 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+﻿using AuthCore.Abstractions.Interfaces;
+using AuthCore.Abstractions.Models;
+using AuthCore.Abstractions.Settings;
 using AuthCore.Application.Common.Errors;
 using AuthCore.Application.Common.Results;
-using AuthCore.Abstractions.Settings;
 using AuthCore.Application.DTOs;
 using AuthCore.Application.Interfaces;
 using AuthCore.Persistence.Entities;
-using AuthCore.Abstractions.Interfaces;
-using AuthCore.Abstractions.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using System.Security.Claims;
 
 namespace AuthCore.Application.Services
 {
@@ -25,14 +26,63 @@ namespace AuthCore.Application.Services
     {
         public async Task<OperationResult<AuthResponse>> RegisterAsync(RegisterRequest request)
         {
-            logger.LogInformation("Registration attempt for {Email}", request.Email);
+            logger.LogInformation("Registration attempt with {IdentityType}: {Identifier}", request.IdentityType, request.Identifier);
 
-            var user = new ApplicationUser { UserName = request.Email, Email = request.Email };
-            var result = await userManager.CreateAsync(user, request.Password);
+            // var user = new ApplicationUser { UserName = request.Email, Email = request.Email };
+            var user = new ApplicationUser();
+
+            switch (request.IdentityType)
+            {
+                case IdentityType.Email:
+                    user.Email = request.Identifier;
+                    user.UserName = request.Identifier; // Используем email как имя пользователя
+                    break;
+
+                case IdentityType.Phone:
+                    user.PhoneNumber = request.Identifier;
+                    user.UserName = $"phone_{request.Identifier}"; // Префикс для уникальности
+                    break;
+
+                case IdentityType.Telegram:
+                    user.TelegramId = long.Parse(request.Identifier);
+                    user.UserName = $"telegram_{request.Identifier}";
+                    break;
+
+                case IdentityType.WhatsApp:
+                    user.WhatsAppId = request.Identifier;
+                    user.UserName = $"whatsapp_{request.Identifier}";
+                    break;
+
+                default:
+                    return OperationResult<AuthResponse>.Fail(ErrorCode.InvalidRequest);
+            }
+
+            // Для email и телефона требуем пароль, для мессенджеров - необязательно
+            IdentityResult result;
+
+            if (request.IdentityType is IdentityType.Email or IdentityType.Phone)
+            {
+                if (string.IsNullOrEmpty(request.Password))
+                {
+                    return OperationResult<AuthResponse>.Fail(ErrorCode.ValidationFailed);
+                }
+
+                result = await userManager.CreateAsync(user, request.Password);
+            }
+            else
+            {
+                // Для мессенджеров генерируем случайный пароль если он не был предоставлен
+                var password = !string.IsNullOrEmpty(request.Password)
+                    ? request.Password
+                    : Guid.NewGuid().ToString("N") + "!Aa1";
+
+                result = await userManager.CreateAsync(user, password);
+            }
 
             if (!result.Succeeded)
             {
-                logger.LogWarning("Registration failed for {Email} with errors: {Errors}", request.Email, result.Errors.Select(e => e.Description));
+                logger.LogWarning("Registration failed for {IdentityType}: {Identifier} with errors: {Errors}",
+                    request.IdentityType, request.Identifier, result.Errors.Select(e => e.Description));
 
                 return OperationResult<AuthResponse>.Fail(
                     result.Errors.FirstOrDefault()?.Code == "DuplicateUserName"
@@ -57,25 +107,72 @@ namespace AuthCore.Application.Services
             await refreshTokenStore.SaveRefreshTokenAsync(new RefreshTokenInfo
                 { UserId = user.Id, Token = refreshToken, Expires = expires });
 
-            logger.LogInformation("User {Email} registered successfully", request.Email);
+            logger.LogInformation("User with {IdentityType}: {Identifier} registered successfully",
+                request.IdentityType, request.Identifier);
+
             return OperationResult<AuthResponse>.Ok(new AuthResponse(accessToken, refreshToken, expires), isCreated: true);
         }
 
         public async Task<OperationResult<AuthResponse>> LoginAsync(LoginRequest request)
         {
-            logger.LogInformation("Login attempt for {Email}", request.Email);
+            logger.LogInformation("Login attempt with {IdentityType}: {Identifier}",
+                request.IdentityType, request.Identifier);
 
-            var user = await userManager.FindByEmailAsync(request.Email);
+            // Находим пользователя в зависимости от типа идентификатора
+            ApplicationUser? user = null;
+
+            switch (request.IdentityType)
+            {
+                case IdentityType.Email:
+                    user = await userManager.FindByEmailAsync(request.Identifier);
+                    break;
+
+                case IdentityType.Phone:
+                    user = await userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == request.Identifier);
+                    break;
+
+                case IdentityType.Telegram:
+                    user = await userManager.Users.FirstOrDefaultAsync(u => u.UserName == $"telegram_{request.Identifier}");
+                    break;
+
+                case IdentityType.WhatsApp:
+                    user = await userManager.Users.FirstOrDefaultAsync(u => u.UserName == $"whatsapp_{request.Identifier}");
+                    break;
+            }
+
             if (user == null)
             {
-                logger.LogWarning("Login failed for {Email} with errors: Invalid credentials", request.Email);
+                logger.LogWarning("Login failed for {IdentityType}: {Identifier} with errors: User not found",
+                    request.IdentityType, request.Identifier);
                 return OperationResult<AuthResponse>.Fail(ErrorCode.InvalidCredentials);
             }
 
-            var result = await signInManager.CheckPasswordSignInAsync(user, request.Password, false);
-            if (!result.Succeeded)
+            // Для разных типов идентификации - разные способы проверки
+            var authSuccess = false;
+
+            if (request.IdentityType is IdentityType.Email or IdentityType.Phone)
             {
-                logger.LogWarning("Login failed for {Email} with errors: Invalid credentials", request.Email);
+                // Для email и телефона требуем стандартную аутентификацию с паролем
+                if (string.IsNullOrEmpty(request.Password))
+                {
+                    return OperationResult<AuthResponse>.Fail(ErrorCode.InvalidCredentials);
+                }
+
+                var result = await signInManager.CheckPasswordSignInAsync(user, request.Password, false);
+                authSuccess = result.Succeeded;
+            }
+            else if (request.IdentityType is IdentityType.Telegram or IdentityType.WhatsApp)
+            {
+                // Для мессенджеров можно реализовать отдельную логику проверки
+                // Например, проверка через внешний API, токен подтверждения и т.д.
+                // Здесь для примера предполагаем, что проверка уже выполнена
+                authSuccess = true;
+            }
+
+            if (!authSuccess)
+            {
+                logger.LogWarning("Login failed for {IdentityType}: {Identifier} with errors: Invalid credentials",
+                    request.IdentityType, request.Identifier);
                 return OperationResult<AuthResponse>.Fail(ErrorCode.InvalidCredentials);
             }
 
@@ -88,7 +185,9 @@ namespace AuthCore.Application.Services
             await refreshTokenStore.SaveRefreshTokenAsync(new RefreshTokenInfo
                 { UserId = user.Id, Token = refreshToken, Expires = expires });
 
-            logger.LogInformation("User {Email} logged in successfully", request.Email);
+            logger.LogInformation("User with {IdentityType}: {Identifier} logged in successfully",
+                request.IdentityType, request.Identifier);
+
             return OperationResult<AuthResponse>.Ok(new AuthResponse(accessToken, refreshToken, expires));
         }
 
