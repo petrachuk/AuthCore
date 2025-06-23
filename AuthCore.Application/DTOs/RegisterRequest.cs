@@ -6,13 +6,19 @@
     public record RegisterRequest
     {
         /// <summary>
-        /// The user's email address
+        /// The type of identifier used for registration
         /// </summary>
-        public string Email { get; init; } = string.Empty;
+        public IdentityType IdentityType { get; init; }
 
         /// <summary>
-        /// The user's password
+        /// The identifier value (email, phone, messenger ID)
         /// </summary>
-        public string Password { get; init; } = string.Empty;
+        public string Identifier { get; init; } = string.Empty;
+
+
+        /// <summary>
+        /// The user's password (if applicable for this registration type)
+        /// </summary>
+        public string? Password { get; init; }
     }
 }

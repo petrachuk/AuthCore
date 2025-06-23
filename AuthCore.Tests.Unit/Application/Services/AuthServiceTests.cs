@@ -56,7 +56,7 @@ namespace AuthCore.Tests.Unit.Application.Services
         public async Task RegisterAsync_Success_ReturnsOk()
         {
             // Arrange
-            var request = new RegisterRequest { Email = "test@example.com", Password = "Password123!" };
+            var request = new RegisterRequest { IdentityType = IdentityType.Email, Identifier = "test@example.com", Password = "Password123!" };
             _userManagerMock.Setup(x => x.CreateAsync(It.IsAny<ApplicationUser>(), request.Password))
                 .ReturnsAsync(IdentityResult.Success);
 
@@ -95,7 +95,7 @@ namespace AuthCore.Tests.Unit.Application.Services
         public async Task RegisterAsync_Failure_ReturnsFail()
         {
             // Arrange
-            var request = new RegisterRequest { Email = "fail@example.com", Password = "BadPassword" };
+            var request = new RegisterRequest { IdentityType = IdentityType.Email, Identifier = "fail@example.com", Password = "BadPassword" };
             var identityErrors = new List<IdentityError>
                 { new() { Code = "DuplicateUserName", Description = "User already exists." } };
 
@@ -117,10 +117,10 @@ namespace AuthCore.Tests.Unit.Application.Services
         public async Task LoginAsync_Success_ReturnsOk()
         {
             // Arrange
-            var request = new LoginRequest { Email = "login@example.com", Password = "Password123!" };
-            var user = new ApplicationUser { Id = "userId", Email = request.Email };
+            var request = new LoginRequest { IdentityType = IdentityType.Email, Identifier = "login@example.com", Password = "Password123!" };
+            var user = new ApplicationUser { Id = "userId", Email = request.Identifier };
 
-            _userManagerMock.Setup(x => x.FindByEmailAsync(request.Email))
+            _userManagerMock.Setup(x => x.FindByEmailAsync(request.Identifier))
                 .ReturnsAsync(user);
 
             _signInManagerMock.Setup(x => x.CheckPasswordSignInAsync(user, request.Password, false))
@@ -153,8 +153,8 @@ namespace AuthCore.Tests.Unit.Application.Services
         public async Task LoginAsync_UserNotFound_ReturnsFail()
         {
             // Arrange
-            var request = new LoginRequest { Email = "notfound@example.com", Password = "Password123!" };
-            _userManagerMock.Setup(x => x.FindByEmailAsync(request.Email))
+            var request = new LoginRequest { IdentityType = IdentityType.Email, Identifier = "notfound@example.com", Password = "Password123!" };
+            _userManagerMock.Setup(x => x.FindByEmailAsync(request.Identifier))
                 .ReturnsAsync((ApplicationUser?)null);
 
             // Act

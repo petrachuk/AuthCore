@@ -1,5 +1,5 @@
-﻿using FluentValidation;
-using AuthCore.Application.DTOs;
+﻿using AuthCore.Application.DTOs;
+using FluentValidation;
 
 namespace AuthCore.Application.Validation
 {
@@ -7,13 +7,69 @@ namespace AuthCore.Application.Validation
     {
         public RegisterRequestValidator()
         {
-            RuleFor(x => x.Email)
-                .NotEmpty()
-                .EmailAddress();
+            RuleFor(x => x.IdentityType)
+                .IsInEnum()
+                .WithMessage("Invalid identifier type");
 
-            RuleFor(x => x.Password)
+            RuleFor(x => x.Identifier)
                 .NotEmpty()
-                .MinimumLength(6);
+                .WithMessage("Identifier cannot be empty");
+
+            // Conditional validation based on identifier type
+            When(x => x.IdentityType == IdentityType.Email, () => {
+                RuleFor(x => x.Identifier)
+                    .EmailAddress()
+                    .WithMessage("Invalid email format");
+
+                RuleFor(x => x.Password)
+                    .NotEmpty()
+                    .WithMessage("Password is required for email registration")
+                    .MinimumLength(10)
+                    .WithMessage("Password must be at least 10 characters long");
+            });
+
+            When(x => x.IdentityType == IdentityType.Phone, () => {
+                RuleFor(x => x.Identifier)
+                    .Matches(@"^\+?[1-9]\d{1,14}$")
+                    .WithMessage("Invalid phone number format. Use international format");
+
+                RuleFor(x => x.Password)
+                    .NotEmpty()
+                    .WithMessage("Password is required for phone registration")
+                    .MinimumLength(10)
+                    .WithMessage("Password must be at least 10 characters long");
+            });
+
+            When(x => x.IdentityType == IdentityType.Telegram, () => {
+                RuleFor(x => x.Identifier)
+                    .Must(BeValidTelegramId)
+                    .WithMessage("Invalid Telegram ID format");
+
+                // Password is optional for Telegram registrations
+                When(x => !string.IsNullOrEmpty(x.Password), () => {
+                    RuleFor(x => x.Password)
+                        .MinimumLength(10)
+                        .WithMessage("If provided, password must be at least 10 characters long");
+                });
+            });
+
+            When(x => x.IdentityType == IdentityType.WhatsApp, () => {
+                RuleFor(x => x.Identifier)
+                    .Matches(@"^\+?[1-9]\d{1,14}$")
+                    .WithMessage("Invalid WhatsApp number format. Use international format");
+
+                // Password is optional for WhatsApp registrations
+                When(x => !string.IsNullOrEmpty(x.Password), () => {
+                    RuleFor(x => x.Password)
+                        .MinimumLength(10)
+                        .WithMessage("If provided, password must be at least 10 characters long");
+                });
+            });
+        }
+
+        private bool BeValidTelegramId(string id)
+        {
+            return TelegramIdValidator.IsValid(id);
         }
     }
 }

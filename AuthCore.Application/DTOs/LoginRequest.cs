@@ -6,13 +6,18 @@
     public record LoginRequest
      {
         /// <summary>
-        /// The user's email address
+        /// The type of identifier used for login
         /// </summary>
-        public string Email { get; init; } = string.Empty;
+        public IdentityType IdentityType { get; init; }
 
         /// <summary>
-        /// The user's password
+        /// The identifier value (email, phone, messenger ID)
         /// </summary>
-        public string Password { get; init; } = string.Empty;
-     };
+        public string Identifier { get; init; } = string.Empty;
+
+        /// <summary>
+        /// The user's password (if applicable for this login type)
+        /// </summary>
+        public string? Password { get; init; }
+    };
 }
