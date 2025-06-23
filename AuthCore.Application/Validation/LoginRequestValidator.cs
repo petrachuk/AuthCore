@@ -1,6 +1,5 @@
 ﻿using AuthCore.Application.DTOs;
 using FluentValidation;
-using System.Text.RegularExpressions;
 
 namespace AuthCore.Application.Validation
 {
@@ -60,13 +59,7 @@ namespace AuthCore.Application.Validation
 
         private bool BeValidTelegramId(string id)
         {
-            // Telegram ID can be numeric or username
-            return !string.IsNullOrEmpty(id) && (
-                // Numeric ID
-                long.TryParse(id, out _) ||
-                // Username (without @, 5-32 chars, letters, numbers and underscores)
-                Regex.IsMatch(id, @"^[a-zA-Z0-9_]{5,32}$")
-            );
+            return TelegramIdValidator.IsValid(id);
         }
     }
 }

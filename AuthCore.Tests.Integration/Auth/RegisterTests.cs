@@ -81,5 +81,72 @@ namespace AuthCore.Tests.Integration.Auth
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.Conflict);
         }
+
+        // Добавляем новые тесты для регистрации через разные каналы идентификации
+        [Fact]
+        public async Task Register_ShouldReturn201_WhenRegisteringWithPhone()
+        {
+            // Arrange
+            var registerRequest = new RegisterRequest
+            {
+                IdentityType = IdentityType.Phone,
+                Identifier = "+12345678901",
+                Password = "StrongPassword123!"
+            };
+
+            // Act
+            var response = await _client.PostAsJsonAsync("/api/auth/register", registerRequest);
+
+            // Assert
+            response.StatusCode.Should().Be(HttpStatusCode.Created);
+            var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
+            authResponse.Should().NotBeNull();
+            authResponse.AccessToken.Should().NotBeNullOrEmpty();
+            authResponse.RefreshToken.Should().NotBeNullOrEmpty();
+        }
+
+        [Fact]
+        public async Task Register_ShouldReturn201_WhenRegisteringWithTelegram()
+        {
+            // Arrange
+            var registerRequest = new RegisterRequest
+            {
+                IdentityType = IdentityType.Telegram,
+                Identifier = "123",
+                Password = null // Пароль необязателен
+            };
+
+            // Act
+            var response = await _client.PostAsJsonAsync("/api/auth/register", registerRequest);
+
+            // Assert
+            response.StatusCode.Should().Be(HttpStatusCode.Created);
+            var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
+            authResponse.Should().NotBeNull();
+            authResponse.AccessToken.Should().NotBeNullOrEmpty();
+            authResponse.RefreshToken.Should().NotBeNullOrEmpty();
+        }
+
+        [Fact]
+        public async Task Register_ShouldReturn201_WhenRegisteringWithWhatsApp()
+        {
+            // Arrange
+            var registerRequest = new RegisterRequest
+            {
+                IdentityType = IdentityType.WhatsApp,
+                Identifier = "+12345678901",
+                Password = null // Пароль необязателен
+            };
+
+            // Act
+            var response = await _client.PostAsJsonAsync("/api/auth/register", registerRequest);
+
+            // Assert
+            response.StatusCode.Should().Be(HttpStatusCode.Created);
+            var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
+            authResponse.Should().NotBeNull();
+            authResponse.AccessToken.Should().NotBeNullOrEmpty();
+            authResponse.RefreshToken.Should().NotBeNullOrEmpty();
+        }
     }
 }
