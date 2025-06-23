@@ -44,8 +44,17 @@ namespace AuthCore.Application.Services
                     break;
 
                 case IdentityType.Telegram:
-                    user.TelegramId = long.Parse(request.Identifier);
-                    user.UserName = $"telegram_{request.Identifier}";
+                    if (long.TryParse(request.Identifier, out var telegramId))
+                    {
+                        user.TelegramId = telegramId;
+                        user.UserName = $"telegram_{telegramId}";
+                    }
+                    else
+                    {
+                        logger.LogWarning("Telegram identifier is not numeric: {Identifier}", request.Identifier);
+                        user.TelegramId = null; // Or handle as appropriate for your application
+                        user.UserName = $"telegram_{request.Identifier}";
+                    }
                     break;
 
                 case IdentityType.WhatsApp:
