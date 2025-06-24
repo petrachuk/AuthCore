@@ -275,6 +275,15 @@ namespace AuthCore.API
 
                 var app = builder.Build();
 
+                // Применение миграций при старте приложения
+                if (!builder.Environment.IsEnvironment("Test"))
+                {
+                    using var scope = app.Services.CreateScope();
+                    
+                    var dbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+                    dbContext.Database.Migrate();
+                }
+
                 // Конфигурация pipeline
                 if (app.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Staging"))
                 {
