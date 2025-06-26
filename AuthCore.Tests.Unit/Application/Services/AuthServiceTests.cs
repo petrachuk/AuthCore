@@ -214,6 +214,13 @@ namespace AuthCore.Tests.Unit.Application.Services
             _tokenServiceMock.Setup(x => x.GenerateAccessTokenAsync(user, It.IsAny<IEnumerable<string>>()))
                 .ReturnsAsync("new-access-token");
 
+            _jwtSettingsMock.Setup(x => x.CurrentValue)
+                .Returns(new JwtSettings
+                {
+                    RefreshTokenLifetimeDays = 7,
+                    AccessTokenLifetimeMinutes = 15
+                });
+
             // Act
             var result = await _authService.RefreshTokenAsync(request);
 

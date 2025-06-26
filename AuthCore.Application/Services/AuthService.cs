@@ -111,15 +111,16 @@ namespace AuthCore.Application.Services
 
             var accessToken = await tokenService.GenerateAccessTokenAsync(user, [ defaultRole ]);
             var refreshToken = await tokenService.GenerateRefreshTokenAsync();
-            var expires = DateTime.UtcNow.AddDays(jwtSettingsMonitor.CurrentValue.RefreshTokenLifetimeDays);
+            var expires = DateTime.UtcNow.AddMinutes(jwtSettingsMonitor.CurrentValue.AccessTokenLifetimeMinutes);
+            var refreshExpires = DateTime.UtcNow.AddDays(jwtSettingsMonitor.CurrentValue.RefreshTokenLifetimeDays);
 
             await refreshTokenStore.SaveRefreshTokenAsync(new RefreshTokenInfo
-                { UserId = user.Id, Token = refreshToken, Expires = expires });
+                { UserId = user.Id, Token = refreshToken, Expires = refreshExpires });
 
             logger.LogInformation("User with {IdentityType}: {Identifier} registered successfully",
                 request.IdentityType, request.Identifier);
 
-            return OperationResult<AuthResponse>.Ok(new AuthResponse(accessToken, refreshToken, expires), isCreated: true);
+            return OperationResult<AuthResponse>.Ok(new AuthResponse(accessToken, refreshToken, expires, refreshExpires), isCreated: true);
         }
 
         public async Task<OperationResult<AuthResponse>> LoginAsync(LoginRequest request)
@@ -189,15 +190,16 @@ namespace AuthCore.Application.Services
 
             var accessToken = await tokenService.GenerateAccessTokenAsync(user, roles);
             var refreshToken = await tokenService.GenerateRefreshTokenAsync();
-            var expires = DateTime.UtcNow.AddDays(jwtSettingsMonitor.CurrentValue.RefreshTokenLifetimeDays);
+            var expires = DateTime.UtcNow.AddMinutes(jwtSettingsMonitor.CurrentValue.AccessTokenLifetimeMinutes);
+            var refreshExpires = DateTime.UtcNow.AddDays(jwtSettingsMonitor.CurrentValue.RefreshTokenLifetimeDays);
 
             await refreshTokenStore.SaveRefreshTokenAsync(new RefreshTokenInfo
-                { UserId = user.Id, Token = refreshToken, Expires = expires });
+                { UserId = user.Id, Token = refreshToken, Expires = refreshExpires });
 
             logger.LogInformation("User with {IdentityType}: {Identifier} logged in successfully",
                 request.IdentityType, request.Identifier);
 
-            return OperationResult<AuthResponse>.Ok(new AuthResponse(accessToken, refreshToken, expires));
+            return OperationResult<AuthResponse>.Ok(new AuthResponse(accessToken, refreshToken, expires, refreshExpires));
         }
 
         public async Task<OperationResult<AuthResponse>> RefreshTokenAsync(RefreshRequest request)
@@ -239,17 +241,18 @@ namespace AuthCore.Application.Services
             logger.LogInformation("Refreshing tokens for user {Email}", user.Email);
 
             var newRefreshToken = await tokenService.GenerateRefreshTokenAsync();
-            var expires = DateTime.UtcNow.AddDays(7);
+            var newRefreshExpires = DateTime.UtcNow.AddDays(jwtSettingsMonitor.CurrentValue.RefreshTokenLifetimeDays);
 
             await refreshTokenStore.SaveRefreshTokenAsync(new RefreshTokenInfo
-                { UserId = user.Id, Token = newRefreshToken, Expires = expires });
+                { UserId = user.Id, Token = newRefreshToken, Expires = newRefreshExpires });
             await refreshTokenStore.DeleteRefreshTokenAsync(storedRefreshToken.Token);
 
             var roles = await userManager.GetRolesAsync(user);
             var newAccessToken = await tokenService.GenerateAccessTokenAsync(user, roles);
+            var newExpires = DateTime.UtcNow.AddMinutes(jwtSettingsMonitor.CurrentValue.AccessTokenLifetimeMinutes);
 
             logger.LogInformation("Token refreshed successfully for user {Email}", user.Email);
-            return OperationResult<AuthResponse>.Ok(new AuthResponse(newAccessToken, newRefreshToken, expires));
+            return OperationResult<AuthResponse>.Ok(new AuthResponse(newAccessToken, newRefreshToken, newExpires, newRefreshExpires));
         }
 
         public async Task<OperationResult> RevokeRefreshTokenAsync(string refreshToken)
