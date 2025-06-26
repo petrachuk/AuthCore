@@ -109,7 +109,7 @@ namespace AuthCore.Tests.Unit.Application.Services
         [Theory]
         [InlineData("this-is-not-a-valid-jwt", typeof(SecurityTokenMalformedException), "IDX12741")]
         [InlineData("invalid.token.here", typeof(ArgumentException), "IDX12729")]
-        [InlineData("eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NSIsIm5hbWUiOiJKb2huIEdvbGQiLCJhZG1pbiI6dHJ1ZX0K.zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz", typeof(SecurityTokenInvalidSignatureException), null)]
+        [InlineData("eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NSIsIm5hbWUiOiJKb2huIEdvbGQiLCJhZG1pbiI6dHJ1ZX0K.zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz", typeof(SecurityTokenSignatureKeyNotFoundException), "IDX10517")]
         public void GetPrincipalFromExpiredToken_InvalidFormat_ThrowsExpectedException(string token, Type expectedExceptionType, string? expectedMessage)
         {
             // Act & Assert
